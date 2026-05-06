@@ -64,12 +64,29 @@ jobs:
           path: laa-data-claims-certificated-service/build/reports/jacoco
           retention-days: 14
 
+  snyk-auth:
+    runs-on: ubuntu-latest
+    needs:
+      - build-test
+    outputs:
+      snyk_token: ${{ steps.auth.outputs.snyk_token }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Obtain Short-lived Snyk token
+        id: auth
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/snyk-auth@6db001458db30ae747d9eb8eb25707ce52b359bc
+        with:
+          client_id: ${{ secrets.SNYK_CLIENT_ID }}
+          client_secret: ${{ secrets.SNYK_CLIENT_SECRET }}
+
   vulnerability-scan-app:
     runs-on: ubuntu-latest
     needs:
       - build-test
+      - snyk-auth
     env:
-      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      SNYK_TOKEN: ${{ needs.snyk-auth.outputs.snyk_token }}
       SNYK_TEST_EXCLUDE: build,generated
       SNYK_TARGET_REFERENCE: main
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -86,8 +103,9 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build-test
+      - snyk-auth
     env:
-      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      SNYK_TOKEN: ${{ needs.snyk-auth.outputs.snyk_token }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
