@@ -38,7 +38,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: test-results
-          path: laa-data-claims-certificated-api-service/build/test-results
+          path: laa-data-claims-certificated-service/build/test-results
           retention-days: 14
 
       - name: Upload checkstyle report
@@ -46,7 +46,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: checkstyle-report
-          path: laa-data-claims-certificated-api-service/build/reports/checkstyle
+          path: laa-data-claims-certificated-service/build/reports/checkstyle
           retention-days: 14
 
       - name: Upload test report
@@ -54,7 +54,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: test-report
-          path: laa-data-claims-certificated-api-service/build/reports/tests
+          path: laa-data-claims-certificated-service/build/reports/tests
           retention-days: 14
 
       - name: Upload jacoco coverage report
@@ -62,7 +62,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: jacoco-coverage-report
-          path: laa-data-claims-certificated-api-service/build/reports/jacoco
+          path: laa-data-claims-certificated-service/build/reports/jacoco
           retention-days: 14
 
   vulnerability-report:

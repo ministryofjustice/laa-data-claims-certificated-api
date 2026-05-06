@@ -23,8 +23,8 @@ more information regarding setup and usage.
 ### Project Structure
 Includes the following subprojects:
 
-- `laa-data-claims-certificated-api-api` - example OpenAPI specification used for generating API stub interfaces and documentation.
-- `laa-data-claims-certificated-api-service` - example REST API service with CRUD operations interfacing a JPA repository with an in-memory database.
+- `laa-data-claims-certificated-api` - example OpenAPI specification used for generating API stub interfaces and documentation.
+- `laa-data-claims-certificated-service` - example REST API service with CRUD operations interfacing a JPA repository with an in-memory database.
 
 ## TODO: Update this README
 

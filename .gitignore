@@ -6,7 +6,7 @@ build/
 !**/src/test/**/build/
 .DS_Store
 
-laa-data-claims-certificated-api-api/generated
+laa-data-claims-certificated-api/generated
 
 ### IntelliJ IDEA ###
 .idea
