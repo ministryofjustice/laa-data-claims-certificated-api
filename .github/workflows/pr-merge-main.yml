@@ -84,6 +84,24 @@ jobs:
           java-version: 25
           distribution: 'corretto'
 
+      - name: Obtain Short-lived Snyk token
+        id: auth
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/snyk-auth@6db001458db30ae747d9eb8eb25707ce52b359bc
+        with:
+          client_id: ${{ secrets.SNYK_CLIENT_ID }}
+          client_secret: ${{ secrets.SNYK_CLIENT_SECRET }}
+
+      - name: Export Snyk token for remaining steps
+        shell: bash
+        run: |
+          TOKEN='${{ steps.auth.outputs.token }}'
+          if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+            echo "::error::snyk-auth returned empty/null token"
+            exit 1
+          fi
+          echo "::add-mask::$TOKEN"
+          echo "SNYK_OAUTH_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+
       - name: Setup Snyk
         uses: snyk/actions/setup@master
 
