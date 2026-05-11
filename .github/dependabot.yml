@@ -33,10 +33,10 @@ updates:
     groups:
       gradle-updates:
         exclude-patterns:
-          - "uk.gov.laa.springboot.microservice.*"
+          - "uk.gov.laa.data.claims.certificated.api.*"
       internal-packages:
         patterns:
-          - "uk.gov.laa.springboot.microservice*"
+          - "uk.gov.laa.data.claims.certificated.api*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

@@ -19,8 +19,8 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'laa-spring-boot-microservice-template'
+rootProject.name = 'laa-data-claims-certificated-api'
 
-include 'spring-boot-microservice-api'
-include 'spring-boot-microservice-service'
+include 'laa-data-claims-certificated-api'
+include 'laa-data-claims-certificated-service'
 

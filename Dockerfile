@@ -2,11 +2,11 @@
 FROM amazoncorretto:25-alpine
 
 # Set up working directory in the container
-RUN mkdir -p /opt/laa-spring-boot-microservice/
-WORKDIR /opt/laa-spring-boot-microservice/
+RUN mkdir -p /opt/laa-data-claims-certificated-api/
+WORKDIR /opt/laa-data-claims-certificated-api/
 
 # Copy the JAR file into the container
-COPY spring-boot-microservice-service/build/libs/spring-boot-microservice-service-1.0.0.jar app.jar
+COPY laa-data-claims-certificated-service/build/libs/laa-data-claims-certificated-service-1.0.0.jar app.jar
 
 # Create a group and non-root user
 RUN addgroup -S appgroup && adduser -u 1001 -S appuser -G appgroup
