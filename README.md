@@ -24,7 +24,7 @@ more information regarding setup and usage.
 Includes the following subprojects:
 
 - `laa-data-claims-certificated-api` - example OpenAPI specification used for generating API stub interfaces and documentation.
-- `laa-data-claims-certificated-service` - example REST API service with CRUD operations interfacing a JPA repository with an in-memory database.
+- `laa-data-claims-certificated-service` - example REST API service with CRUD operations interfacing a JPA repository with a PostgreSQL database.
 
 ## TODO: Update this README
 
@@ -149,7 +149,7 @@ sentry:
   methods like getters, setters, constructors etc. at compile-time using annotations.
 - [MapStruct](https://mapstruct.org/) - used for object mapping, specifically for converting between different Java object types, such as Data Transfer Objects (DTOs)
   and Entity objects. It generates mapping code at compile code.
-- [H2](https://www.h2database.com/html/main.html) - used to provide an example database and should not be used in production.
+- [PostgreSQL](https://www.postgresql.org/) - used to provide a local/example database.
 - [Sentry for Java SDK](https://docs.sentry.io/platforms/java/) - used to capture application exception events at runtime, which can be monitored via the Sentry UI.
 
 ## ⚠️ Temporary Dependency Overrides

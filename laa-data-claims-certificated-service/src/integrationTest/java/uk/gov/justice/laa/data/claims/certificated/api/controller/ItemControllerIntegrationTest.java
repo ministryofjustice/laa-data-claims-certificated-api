@@ -18,6 +18,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.laa.data.claims.certificated.api.DataClaimsCertificatedApiApplication;
 
+import org.springframework.context.annotation.Import;
+
+import uk.gov.justice.laa.data.claims.certificated.api.TestcontainersConfig;
+
+@Import(TestcontainersConfig.class)
 @SpringBootTest(classes = DataClaimsCertificatedApiApplication.class)
 @AutoConfigureMockMvc
 @Transactional
