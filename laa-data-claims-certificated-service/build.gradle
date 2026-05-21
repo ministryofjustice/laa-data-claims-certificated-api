@@ -45,6 +45,18 @@ spotless {
     }
 }
 
+// Dependency overrides
+// example:
+// Upgrade to fix CVE-xxxx-xxxxx
+// ext['dependency-name.version'] = 'x.x.x'
+
+// **** When adding new overrides please check if any existing overrides are now redundant (by removing them and adding them back only if required)
+
+// Upgrade to fix Allocation of Resources Without Limits or Throttling and Improper Authentication
+ext['tomcat.version'] = '11.0.22'
+// Upgrade to fix Allocation of Resources Without Limits or Throttling
+ext['postgresql.version'] = '42.7.11'
+
 dependencies {
     implementation project(':laa-data-claims-certificated-api')
 
