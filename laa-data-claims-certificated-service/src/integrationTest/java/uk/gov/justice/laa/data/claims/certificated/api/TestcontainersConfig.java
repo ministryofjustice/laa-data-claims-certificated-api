@@ -7,16 +7,15 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /**
- * Spins up a real PostgreSQL container for integration tests.
- * Imported via @Import(TestcontainersConfig.class) on test classes that need it.
+ * Spins up a real PostgreSQL container for integration tests. Imported
+ * via @Import(TestcontainersConfig.class) on test classes that need it.
  */
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfig {
 
-    @Bean
-    @ServiceConnection
-    PostgreSQLContainer<?> postgresContainer() {
-        return new PostgreSQLContainer<>(DockerImageName.parse("postgres:16"));
-    }
+  @Bean
+  @ServiceConnection
+  PostgreSQLContainer<?> postgresContainer() {
+    return new PostgreSQLContainer<>(DockerImageName.parse("postgres:16"));
+  }
 }
-
