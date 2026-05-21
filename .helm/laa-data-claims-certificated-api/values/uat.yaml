@@ -1,0 +1,58 @@
+# UAT values for data-claims-certificated-api
+# Passed to laa-generic-app chart via dependency.
+laa-generic-app:
+  appName: data-claims-certificated-api
+  namespace: data-claims-certificated-api-uat
+  environmentName: uat
+  replicaCount: 1
+  minReplicaCount: 1
+  image:                # set by CI pipeline
+    registry: ""
+    repository: ""
+    tag: ""
+  service:
+    port: 8081
+  livenessProbe:
+    httpGet:
+      path: /actuator/health
+      port: 8181
+    initialDelaySeconds: 60
+  readinessProbe:
+    httpGet:
+      path: /actuator/health
+      port: 8181
+    initialDelaySeconds: 30
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1G
+    requests:
+      cpu: 25m
+      memory: 1G
+  autoscaling:
+    enabled: false
+  # DB connection details injected from the Kubernetes Secret that Cloud Platform
+  # creates automatically when the RDS Terraform module is applied to the namespace.
+  # Secret name: rds-postgresql-instance-output
+  containerEnvironment:
+    enabled: true
+    secrets:
+      - name: DB_HOST
+        secretName: rds-postgresql-instance-output
+        key: rds_instance_address
+      - name: DB_NAME
+        secretName: rds-postgresql-instance-output
+        key: database_name
+      - name: DB_USERNAME
+        secretName: rds-postgresql-instance-output
+        key: database_username
+      - name: DB_PASSWORD
+        secretName: rds-postgresql-instance-output
+        key: database_password
+  ingress:
+    green:
+      enabled: true
+      className: modsec-non-prod
+      hostname: "data-claims-certificated-api-uat.cloud-platform.service.justice.gov.uk"
+  servicemonitor:
+    enabled: false
