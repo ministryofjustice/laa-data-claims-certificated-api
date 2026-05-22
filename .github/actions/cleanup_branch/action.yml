@@ -1,0 +1,62 @@
+name: "Cleanup branch"
+description: 'Tear down the per-PR UAT Helm release and drop the preview Postgres database'
+
+inputs:
+  kube-cert:
+    description: "Kubernetes cluster authentication certificate"
+    required: true
+  kube-token:
+    description: "Kubernetes cluster authentication token"
+    required: true
+  kube-cluster:
+    description: "Kubernetes cluster name"
+    required: true
+  kube-namespace:
+    description: "Kubernetes cluster namespace"
+    required: true
+  app-environment:
+    description: "Target environment (uat)"
+    required: true
+  pr-number:
+    description: "Pull request number for the PR being closed"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get release name to delete
+      id: extract_release_name
+      uses: ./.github/actions/get_release_name
+      with:
+        pr-number: ${{ inputs.pr-number }}
+
+    - name: Authenticate to the cluster
+      uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@2aa2676c3cd9876ec7037ee8b3d729d0306cb7c6 # unversioned
+      with:
+        kube-cert: ${{ inputs.kube-cert }}
+        kube-token: ${{ inputs.kube-token }}
+        kube-cluster: ${{ inputs.kube-cluster }}
+        kube-namespace: ${{ inputs.kube-namespace }}
+
+    - name: Delete preview Helm release
+      shell: bash
+      env:
+        RELEASE_NAME: ${{ steps.extract_release_name.outputs.release-name }}
+        NAMESPACE: ${{ inputs.kube-namespace }}
+      run: helm uninstall "$RELEASE_NAME" --namespace "$NAMESPACE" --wait --ignore-not-found
+
+    - name: Drop preview database from RDS
+      shell: bash
+      env:
+        RELEASE_NAME: ${{ steps.extract_release_name.outputs.release-name }}
+      run: scripts/uat_drop_db.sh "$RELEASE_NAME"
+
+    - name: Delete leftover Helm release history secrets
+      shell: bash
+      env:
+        RELEASE_NAME: ${{ steps.extract_release_name.outputs.release-name }}
+        NAMESPACE: ${{ inputs.kube-namespace }}
+      run: |
+        kubectl delete secret -l name="$RELEASE_NAME",owner=helm \
+          --namespace "$NAMESPACE" --ignore-not-found=true
+

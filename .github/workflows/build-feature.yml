@@ -4,6 +4,8 @@ on:
   push:
     branches-ignore:
       - main
+    paths-ignore:
+      - '.github/workflows/deploy-uat-preview.yml'
 
 env:
   JAVA_VERSION: &JAVA_VERSION '25'
