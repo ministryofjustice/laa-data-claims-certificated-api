@@ -56,12 +56,15 @@ jobs:
       java_distribution: *JDK_DISTRIBUTION
       jar_subproject: 'laa-data-claims-certificated-service'
       image_version: ${{ github.sha }}
+      # Docker image scan is handled by sca-analysis.yml using short-lived SNYK_CLIENT_ID/SECRET
+      # tokens — disabling here to avoid duplicate scans and the need for a static SNYK_TOKEN.
+      image_scan: 'false'
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
       ecr_repository: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
       ecr_region: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REGION }}
       ecr_role_to_assume: ${{ secrets.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_ROLE_TO_ASSUME }}
-      snyk_token: ${{ secrets.SNYK_TOKEN }}
+      snyk_token: ""
 
   deploy-uat-preview:
     runs-on: ubuntu-latest
