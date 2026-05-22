@@ -13,11 +13,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.laa.data.claims.certificated.api.DataClaimsCertificatedApiApplication;
+import uk.gov.justice.laa.data.claims.certificated.api.TestcontainersConfig;
 
+@Import(TestcontainersConfig.class)
 @SpringBootTest(classes = DataClaimsCertificatedApiApplication.class)
 @AutoConfigureMockMvc
 @Transactional
