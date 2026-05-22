@@ -24,7 +24,7 @@ more information regarding setup and usage.
 Includes the following subprojects:
 
 - `laa-data-claims-certificated-api` - example OpenAPI specification used for generating API stub interfaces and documentation.
-- `laa-data-claims-certificated-service` - example REST API service with CRUD operations interfacing a JPA repository with an in-memory database.
+- `laa-data-claims-certificated-service` - example REST API service with CRUD operations interfacing a JPA repository with a PostgreSQL database.
 
 ## TODO: Update this README
 
@@ -149,7 +149,7 @@ sentry:
   methods like getters, setters, constructors etc. at compile-time using annotations.
 - [MapStruct](https://mapstruct.org/) - used for object mapping, specifically for converting between different Java object types, such as Data Transfer Objects (DTOs)
   and Entity objects. It generates mapping code at compile code.
-- [H2](https://www.h2database.com/html/main.html) - used to provide an example database and should not be used in production.
+- [PostgreSQL](https://www.postgresql.org/) - used to provide a local/example database.
 - [Sentry for Java SDK](https://docs.sentry.io/platforms/java/) - used to capture application exception events at runtime, which can be monitored via the Sentry UI.
 
 ## ⚠️ Temporary Dependency Overrides
@@ -160,8 +160,6 @@ available in a future `laa-spring-boot-common` release.
 | Dependency                                  | Overridden Version | Reason                                                                                                                                    | Date Added |
 |---------------------------------------------|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------|------------|
 | `com.fasterxml.jackson.core:jackson-core`   | `2.21.2`           | Fixes Snyk issue - [SNYK-JAVA-COMFASTERXMLJACKSONCORE-15907551](https://security.snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-15907551) | 2026-04-30 |
-| `org.apache.tomcat.embed:tomcat-embed-core` | `11.0.21`          | Fixes Snyk issues - [SNYK-JAVA-ORGAPACHETOMCATEMBED-15989820](https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHETOMCATEMBED-15989820)      | 2026-04-30 |
+| `org.apache.tomcat.embed:tomcat-embed-core` | `11.0.22`          | Fixes Snyk issues - [SNYK-JAVA-ORGAPACHETOMCATEMBED-15989820](https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHETOMCATEMBED-15989820), [SNYK-JAVA-ORGAPACHETOMCATEMBED-16643259](https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHETOMCATEMBED-16643259), [SNYK-JAVA-ORGAPACHETOMCATEMBED-16691231](https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHETOMCATEMBED-16691231) | 2026-04-30 |
 | `tools.jackson.core:jackson-core`           | `3.1.1`            | Fixes Snyk issue - [SNYK-JAVA-TOOLSJACKSONCORE-15907550](https://security.snyk.io/vuln/SNYK-JAVA-TOOLSJACKSONCORE-15907550)               | 2026-04-30 |
-
-
-
+| `org.postgresql:postgresql`                 | `42.7.11`          | Fixes Snyk issue - [SNYK-JAVA-ORGPOSTGRESQL-16321668](https://security.snyk.io/vuln/SNYK-JAVA-ORGPOSTGRESQL-16321668)                     | 2026-05-21 |
