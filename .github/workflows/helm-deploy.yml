@@ -23,6 +23,10 @@ on:
         required: false
         type: string
         description: Helm release name (defaults to data-claims-certificated-api-<environment>)
+      k8s_service_account:
+        required: false
+        type: string
+        description: Kubernetes service account name for cluster authentication
 
 jobs:
   deploy:
@@ -35,4 +39,5 @@ jobs:
       helm_release_name: ${{ inputs.helm_release_name || format('data-claims-certificated-api-{0}', inputs.environment) }}
       helm_chart: ./laa-generic-helm-chart
       helm_values_path: .helm/laa-data-claims-certificated-api/values/${{ inputs.environment }}.yaml
+      k8s_service_account: ${{ inputs.k8s_service_account }}
     secrets: inherit

@@ -132,5 +132,6 @@ jobs:
       helm_release_name: ${{ needs.create-preview-db.outputs.release-name }}
       helm_chart: ./laa-generic-helm-chart
       helm_values_path: .helm/laa-data-claims-certificated-api/values/uat.yaml
+      k8s_service_account: laa-data-claims-certificated-api-uat-service-account
     secrets: inherit
 
