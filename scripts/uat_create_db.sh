@@ -49,7 +49,14 @@ function _uat_create_db() {
   kubectl port-forward pod/"$PF_POD_NAME" 5433:5432 &
   PF_PID=$!
 
-  sleep 5
+  echo 'Waiting for port-forward to be ready...'
+  for i in {1..15}; do
+    if nc -z localhost 5433 2>/dev/null; then
+      echo "Port-forward ready after ${i}s"
+      break
+    fi
+    sleep 1
+  done
 
   echo "Creating database: ${RELEASE_NAME}"
   for i in {1..3}; do
