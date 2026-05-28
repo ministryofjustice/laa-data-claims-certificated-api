@@ -123,12 +123,14 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    uses: ./.github/workflows/helm-deploy.yml
+    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/cp-deploy.yml@main
     with:
       environment: uat
       image_tag: ${{ needs.ecr-publish-image.outputs.published_image_version }}
       image_registry: ${{ needs.ecr-publish-image.outputs.image_registry }}
       image_repo: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
       helm_release_name: ${{ needs.create-preview-db.outputs.release-name }}
+      helm_chart: ./laa-generic-helm-chart
+      helm_values_path: .helm/laa-data-claims-certificated-api/values/uat.yaml
     secrets: inherit
 
