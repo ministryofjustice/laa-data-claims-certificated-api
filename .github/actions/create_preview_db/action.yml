@@ -1,0 +1,60 @@
+name: "Deploy branch"
+description: 'Create a per-PR preview database in UAT'
+
+inputs:
+  kube-cert:
+    description: "Kubernetes cluster authentication certificate"
+    required: true
+  kube-token:
+    description: "Kubernetes cluster authentication token"
+    required: true
+  kube-cluster:
+    description: "Kubernetes cluster name"
+    required: true
+  kube-namespace:
+    description: "Kubernetes cluster namespace"
+    required: true
+  pr-number:
+    description: "Pull request number"
+    required: false
+
+outputs:
+  release-name:
+    description: "Helm release name used for this deployment"
+    value: ${{ steps.extract_release_name.outputs.release-name }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Extract release name
+      id: extract_release_name
+      uses: ./.github/actions/get_release_name
+      with:
+        pr-number: ${{ inputs.pr-number }}
+
+    - name: Authenticate to the cluster
+      uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@2aa2676c3cd9876ec7037ee8b3d729d0306cb7c6 # unversioned
+      with:
+        kube-cert: ${{ inputs.kube-cert }}
+        kube-token: ${{ inputs.kube-token }}
+        kube-cluster: ${{ inputs.kube-cluster }}
+        kube-namespace: ${{ inputs.kube-namespace }}
+
+    - name: Apply port-forward deployment and service
+      shell: bash
+      env:
+        KUBE_NAMESPACE: ${{ inputs.kube-namespace }}
+      run: |
+        kubectl apply -f .helm/laa-data-claims-certificated-api/templates/port-forward-deployment.yaml \
+          --namespace "$KUBE_NAMESPACE"
+        kubectl apply -f .helm/laa-data-claims-certificated-api/templates/port-forward-service.yaml \
+          --namespace "$KUBE_NAMESPACE"
+
+    - name: Create preview database
+      if: ${{ steps.extract_release_name.outputs.branch-name != 'main' }}
+      shell: bash
+      env:
+        RELEASE_NAME: ${{ steps.extract_release_name.outputs.release-name }}
+      run: |
+        echo "Creating database: $RELEASE_NAME"
+        scripts/uat_create_db.sh "$RELEASE_NAME"

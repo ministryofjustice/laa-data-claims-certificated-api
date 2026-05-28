@@ -66,7 +66,7 @@ jobs:
       ecr_role_to_assume: ${{ secrets.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_ROLE_TO_ASSUME }}
       snyk_token: ""
 
-  deploy-uat-preview:
+  create-preview-db:
     runs-on: ubuntu-latest
     needs:
       - ecr-publish-image
@@ -76,22 +76,59 @@ jobs:
       id-token: write
       contents: read
 
+    outputs:
+      release-name: ${{ steps.get_release_name.outputs.release-name }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Deploy UAT branch preview
-        uses: ./.github/actions/deploy_branch
+      - name: Get release name
+        id: get_release_name
+        uses: ./.github/actions/get_release_name
         with:
-          ecr-region: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REGION }}
-          ecr-role-to-assume: ${{ secrets.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_ROLE_TO_ASSUME }}
-          ecr-repository: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
-          image-registry: ${{ needs.ecr-publish-image.outputs.image_registry }}
+          pr-number: ${{ github.event.pull_request.number }}
+
+      - name: Authenticate to the cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@2aa2676c3cd9876ec7037ee8b3d729d0306cb7c6 # unversioned
+        with:
           kube-cert: ${{ secrets.KUBE_CERT }}
           kube-token: ${{ secrets.KUBE_TOKEN }}
           kube-cluster: ${{ secrets.KUBE_CLUSTER }}
           kube-namespace: ${{ secrets.KUBE_NAMESPACE }}
-          app-environment: uat
-          pr-number: ${{ github.event.pull_request.number }}
-          image-tag: ${{ needs.ecr-publish-image.outputs.published_image_version }}
+
+      - name: Apply port-forward deployment and service
+        shell: bash
+        env:
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+        run: |
+          kubectl apply -f .helm/laa-data-claims-certificated-api/templates/port-forward-deployment.yaml \
+            --namespace "$KUBE_NAMESPACE"
+          kubectl apply -f .helm/laa-data-claims-certificated-api/templates/port-forward-service.yaml \
+            --namespace "$KUBE_NAMESPACE"
+
+      - name: Create preview database
+        if: ${{ github.event.pull_request.number != '' }}
+        shell: bash
+        env:
+          RELEASE_NAME: ${{ steps.get_release_name.outputs.release-name }}
+        run: |
+          echo "Creating database: $RELEASE_NAME"
+          scripts/uat_create_db.sh "$RELEASE_NAME"
+
+  deploy-uat-preview:
+    needs:
+      - create-preview-db
+      - ecr-publish-image
+    permissions:
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/helm-deploy.yml
+    with:
+      environment: uat
+      image_tag: ${{ needs.ecr-publish-image.outputs.published_image_version }}
+      image_registry: ${{ needs.ecr-publish-image.outputs.image_registry }}
+      image_repo: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
+      helm_release_name: ${{ needs.create-preview-db.outputs.release-name }}
+    secrets: inherit
 
