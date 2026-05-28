@@ -78,6 +78,8 @@ jobs:
     with:
       environment: uat
       image_tag: ${{ needs.ecr-publish-image.outputs.published_image_version }}
+      image_registry: ${{ needs.ecr-publish-image.outputs.image_registry }}
+      image_repo: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
     secrets: inherit
 
   deploy-staging:
@@ -92,6 +94,8 @@ jobs:
     with:
       environment: staging
       image_tag: ${{ needs.ecr-publish-image.outputs.published_image_version }}
+      image_registry: ${{ needs.ecr-publish-image.outputs.image_registry }}
+      image_repo: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
     secrets: inherit
 
   deploy-production:
@@ -106,4 +110,6 @@ jobs:
     with:
       environment: production
       image_tag: ${{ needs.ecr-publish-image.outputs.published_image_version }}
+      image_registry: ${{ needs.ecr-publish-image.outputs.image_registry }}
+      image_repo: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
     secrets: inherit

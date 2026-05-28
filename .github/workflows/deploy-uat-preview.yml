@@ -86,6 +86,7 @@ jobs:
           ecr-region: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REGION }}
           ecr-role-to-assume: ${{ secrets.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_ROLE_TO_ASSUME }}
           ecr-repository: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
+          image-registry: ${{ needs.ecr-publish-image.outputs.image_registry }}
           kube-cert: ${{ secrets.KUBE_CERT }}
           kube-token: ${{ secrets.KUBE_TOKEN }}
           kube-cluster: ${{ secrets.KUBE_CLUSTER }}

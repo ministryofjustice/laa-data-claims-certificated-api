@@ -11,63 +11,28 @@ on:
         required: true
         type: string
         description: Docker image tag to deploy
-
-permissions:
-  contents: read
-  id-token: write
+      image_registry:
+        required: true
+        type: string
+        description: ECR registry URL
+      image_repo:
+        required: true
+        type: string
+        description: ECR repository path
+      helm_release_name:
+        required: false
+        type: string
+        description: Helm release name (defaults to data-claims-certificated-api-<environment>)
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Authenticate to the cluster
-        run: |
-          echo "${{ secrets.KUBE_CERT }}" > ca.crt
-          kubectl config set-cluster ${{ secrets.KUBE_CLUSTER }} --certificate-authority=./ca.crt --server=https://${{ secrets.KUBE_CLUSTER }}
-          kubectl config set-credentials deploy-user --token=${{ secrets.KUBE_TOKEN }}
-          kubectl config set-context ${{ secrets.KUBE_CLUSTER }} --cluster=${{ secrets.KUBE_CLUSTER }} --user=deploy-user --namespace=${{ secrets.KUBE_NAMESPACE }}
-          kubectl config use-context ${{ secrets.KUBE_CLUSTER }}
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6
-        with:
-          role-to-assume: ${{ secrets.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_ROLE_TO_ASSUME }}
-          aws-region: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REGION }}
-
-      - name: Login to ECR
-        uses: aws-actions/amazon-ecr-login@376925c9d111252e87ae59691e5a442dd100ef6a # v2.1.3
-        id: login-ecr
-
-      - name: Set chart appVersion
-        env:
-          IMAGE_TAG: ${{ inputs.image_tag }}
-        run: |
-          yq eval "( .appVersion = \"$IMAGE_TAG\" )" -i .helm/laa-data-claims-certificated-api/Chart.yaml
-          cat .helm/laa-data-claims-certificated-api/Chart.yaml
-
-      - name: Add laa-generic-helm-chart repository and update dependencies
-        run: |
-          helm repo add laa-generic-helm-chart https://ministryofjustice.github.io/laa-generic-helm-chart
-          helm repo update
-          helm dependency update .helm/laa-data-claims-certificated-api
-
-      - name: Install or upgrade helm chart
-        env:
-          IMAGE_TAG: ${{ inputs.image_tag }}
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
-          ENV_VALUES_FILE: ".helm/laa-data-claims-certificated-api/values/${{ inputs.environment }}.yaml"
-          RELEASE_NAME: "data-claims-certificated-api-${{ inputs.environment }}"
-        run: |
-          echo "Deploying Helm release '$RELEASE_NAME'..."
-          helm upgrade --install --wait --timeout 5m \
-            -f "$ENV_VALUES_FILE" \
-            "$RELEASE_NAME" .helm/laa-data-claims-certificated-api \
-            --set laa-generic-app.image.registry="$REGISTRY" \
-            --set laa-generic-app.image.repository="$REPOSITORY" \
-            --set laa-generic-app.image.tag="$IMAGE_TAG"
+    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/cp-deploy.yml@main
+    with:
+      environment: ${{ inputs.environment }}
+      image_registry: ${{ inputs.image_registry }}
+      image_repo: ${{ inputs.image_repo }}
+      image_tag: ${{ inputs.image_tag }}
+      helm_release_name: ${{ inputs.helm_release_name || format('data-claims-certificated-api-{0}', inputs.environment) }}
+      helm_chart: ./laa-generic-helm-chart
+      helm_values_path: .helm/laa-data-claims-certificated-api/values/${{ inputs.environment }}.yaml
+    secrets: inherit

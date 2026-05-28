@@ -32,6 +32,9 @@ inputs:
   image-tag:
     description: "Docker image tag to deploy"
     required: true
+  image-registry:
+    description: "ECR registry URL"
+    required: true
 
 outputs:
   release-name:
@@ -71,12 +74,6 @@ runs:
         role-to-assume: ${{ inputs.ecr-role-to-assume }}
         aws-region: ${{ inputs.ecr-region }}
 
-    - name: Login to ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@376925c9d111252e87ae59691e5a442dd100ef6a # v2.1.3
-      with:
-        mask-password: 'true'
-
     - name: Create preview database
       if: ${{ steps.extract_release_name.outputs.branch-name != 'main' }}
       shell: bash
@@ -86,25 +83,31 @@ runs:
         echo "Creating database: $RELEASE_NAME"
         scripts/uat_create_db.sh "$RELEASE_NAME"
 
-    - name: Add laa-generic-helm-chart repository and update dependencies
-      shell: bash
-      run: |
-        helm repo add laa-generic-helm-chart https://ministryofjustice.github.io/laa-generic-helm-chart
-        helm repo update
-        helm dependency update .helm/laa-data-claims-certificated-api
+    - name: Obtain Octo STS Token
+      uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
+      id: octo_sts
+      with:
+        scope: ministryofjustice/laa-generic-helm-chart
+        identity: laa-reusable-actions-deploy
+
+    - name: Clone laa-generic-helm-chart
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        repository: ministryofjustice/laa-generic-helm-chart
+        token: ${{ steps.octo_sts.outputs.token }}
+        path: laa-generic-helm-chart
 
     - name: Helm deployment of branch preview
       shell: bash
       env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ inputs.ecr-repository }}
+        IMAGE_REGISTRY: ${{ inputs.image-registry }}
+        IMAGE_REPO: ${{ inputs.ecr-repository }}
         IMAGE_TAG: ${{ inputs.image-tag }}
         KUBE_NAMESPACE: ${{ inputs.kube-namespace }}
         RELEASE_NAME: ${{ steps.extract_release_name.outputs.release-name }}
         BRANCH_NAME: ${{ steps.extract_release_name.outputs.branch-name }}
         VALUES_FILE: .helm/laa-data-claims-certificated-api/values/${{ inputs.app-environment }}.yaml
       run: |
-        # Build unique hostname for this PR preview
         EXTERNAL_HOST="${RELEASE_NAME}-${KUBE_NAMESPACE}.cloud-platform.service.justice.gov.uk"
 
         if [ "$BRANCH_NAME" == "main" ]; then
@@ -115,17 +118,16 @@ runs:
 
         echo "Deploying release '$RELEASE_NAME' to $EXTERNAL_HOST with DB '$DB_NAME'..."
 
-        helm upgrade "$RELEASE_NAME" .helm/laa-data-claims-certificated-api \
+        helm upgrade "$RELEASE_NAME" ./laa-generic-helm-chart \
           --namespace "$KUBE_NAMESPACE" \
           --values "$VALUES_FILE" \
-          --set laa-generic-app.appName="$RELEASE_NAME" \
-          --set laa-generic-app.namespace="$KUBE_NAMESPACE" \
-          --set laa-generic-app.image.registry="$ECR_REGISTRY" \
-          --set laa-generic-app.image.repository="$ECR_REPOSITORY" \
-          --set laa-generic-app.image.tag="$IMAGE_TAG" \
-          --set laa-generic-app.ingress.green.hostname="$EXTERNAL_HOST" \
-          --set laa-generic-app.containerEnvironment.envs[0].name="DB_NAME" \
-          --set laa-generic-app.containerEnvironment.envs[0].value="$DB_NAME" \
+          --set appName="$RELEASE_NAME" \
+          --set namespace="$KUBE_NAMESPACE" \
+          --set image.registry="$IMAGE_REGISTRY" \
+          --set image.repository="$IMAGE_REPO" \
+          --set image.tag="$IMAGE_TAG" \
+          --set ingress.green.hostname="$EXTERNAL_HOST" \
+          --set containerEnvironment.envs[0].name="DB_NAME" \
+          --set containerEnvironment.envs[0].value="$DB_NAME" \
           --install \
           --wait --timeout=10m
-
