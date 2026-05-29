@@ -33,6 +33,7 @@ autoscaling:
   maxReplicaCount: 8
   targetCPUUtilizationPercentage: 60
   targetMemoryUtilizationPercentage: 70
+serviceAccountName: laa-data-claims-certificated-api-prod-service-account
 # DB connection details injected from the Kubernetes Secret that Cloud Platform
 # creates automatically when the RDS Terraform module is applied to the namespace.
 # Secret name: rds-postgresql-instance-output
