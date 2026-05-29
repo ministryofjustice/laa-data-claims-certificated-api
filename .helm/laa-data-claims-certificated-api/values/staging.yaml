@@ -59,7 +59,6 @@ ingress:
     hostname: "data-claims-certificated-api-staging.cloud-platform.service.justice.gov.uk"
     annotations:
       external-dns.alpha.kubernetes.io/aws-weight: "100"
-      external-dns.alpha.kubernetes.io/set-identifier: "data-claims-certificated-api-green-laa-data-claims-certificated-api-staging-green"
       nginx.ingress.kubernetes.io/enable-modsecurity: "true"
       nginx.ingress.kubernetes.io/modsecurity-snippet: |
         SecRuleEngine On

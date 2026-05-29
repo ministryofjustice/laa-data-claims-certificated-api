@@ -127,13 +127,6 @@ jobs:
           kubectl apply -f .helm/laa-data-claims-certificated-api/templates/port-forward-service.yaml \
             --namespace "$KUBE_NAMESPACE"
 
-      - name: Debug - print values file
-        run: |
-          echo "=== Values file path ==="
-          echo ".helm/laa-data-claims-certificated-api/values/uat.yaml"
-          echo "=== Contents ==="
-          cat .helm/laa-data-claims-certificated-api/values/uat.yaml || echo "FILE NOT FOUND"
-
       - name: Create preview database
         if: ${{ github.event.pull_request.number != '' }}
         shell: bash
@@ -160,6 +153,9 @@ jobs:
       helm_release_name: ${{ needs.create-preview-db.outputs.release-name }}
       helm_chart: ./laa-generic-helm-chart
       helm_values_path: .helm/laa-data-claims-certificated-api/values/uat.yaml
+      helm_additional_args: >-
+        --set nameOverride=${{ needs.create-preview-db.outputs.release-name }}
+        --set ingress.green.annotations."external-dns\.alpha\.kubernetes\.io/set-identifier"=${{ needs.create-preview-db.outputs.release-name }}-green-laa-data-claims-certificated-api-uat-green
       k8s_service_account: laa-data-claims-certificated-api-uat-service-account
     secrets: inherit
 
