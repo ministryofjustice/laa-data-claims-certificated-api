@@ -89,7 +89,8 @@ jobs:
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
         run: |
           echo "KUBE_NAMESPACE length: ${#KUBE_NAMESPACE}"
-          echo "Token namespace claim:"
+          echo "KUBE_NAMESPACE hex dump (last 5 chars):"
+          echo -n "$KUBE_NAMESPACE" | tail -c 5 | xxd
           echo "$KUBE_TOKEN" | python3 -c "
           import sys, base64, json
           token = sys.stdin.read().strip()
@@ -97,12 +98,11 @@ jobs:
           p = parts[1]
           p += '=' * (4 - len(p) % 4)
           d = json.loads(base64.b64decode(p, altchars=b'-_').decode('utf-8'))
-          ns = d.get('kubernetes.io', {}).get('serviceaccount', {}).get('namespace', '?')
-          sa = d.get('kubernetes.io', {}).get('serviceaccount', {}).get('name', '?')
-          print(f'Token namespace: {ns}')
-          print(f'Token service account: {sa}')
+          print('All keys:', list(d.keys()))
+          for k, v in d.items():
+              if 'namespace' in str(k).lower() or 'serviceaccount' in str(k).lower():
+                  print(f'  {k}: {v}')
           "
-          echo "KUBE_NAMESPACE matches token namespace: $([ '$KUBE_NAMESPACE' = "$(echo $KUBE_TOKEN | python3 -c "import sys,base64,json; t=sys.stdin.read().strip().split('.'); p=t[1]+'='*(4-len(t[1])%4); print(json.loads(base64.b64decode(p,altchars=b'-_').decode()).get('kubernetes.io',{}).get('serviceaccount',{}).get('namespace','?'))")" ] && echo YES || echo NO)"
 
       - name: Get release name
         id: get_release_name
