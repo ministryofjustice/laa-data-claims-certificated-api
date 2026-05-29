@@ -1,6 +1,6 @@
 # Production values for data-claims-certificated-api
 # Used directly with laa-generic-helm-chart (cloned via cp-deploy.yml).
-appName: data-claims-certificated-api
+nameOverride: data-claims-certificated-api
 namespace: laa-data-claims-certificated-api-prod
 environmentName: production
 replicaCount: 2
