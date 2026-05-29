@@ -1,7 +1,7 @@
 # Staging values for data-claims-certificated-api
 # Used directly with laa-generic-helm-chart (cloned via cp-deploy.yml).
 appName: data-claims-certificated-api
-namespace: data-claims-certificated-api-staging
+namespace: laa-data-claims-certificated-api-staging
 environmentName: staging
 replicaCount: 2
 minReplicaCount: 2

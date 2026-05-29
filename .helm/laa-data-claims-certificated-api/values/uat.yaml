@@ -1,7 +1,7 @@
 # UAT values for data-claims-certificated-api
 # Used directly with laa-generic-helm-chart (cloned via cp-deploy.yml).
 appName: data-claims-certificated-api
-namespace: data-claims-certificated-api-uat
+namespace: laa-data-claims-certificated-api-uat
 environmentName: uat
 replicaCount: 1
 minReplicaCount: 1

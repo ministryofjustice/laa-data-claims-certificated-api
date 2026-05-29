@@ -83,26 +83,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Debug - decode KUBE_TOKEN service account
-        env:
-          KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
-          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
-        run: |
-          echo "KUBE_NAMESPACE length: ${#KUBE_NAMESPACE}"
-          echo "KUBE_NAMESPACE hex dump (last 5 chars):"
-          echo -n "$KUBE_NAMESPACE" | tail -c 5 | xxd
-          echo "$KUBE_TOKEN" | python3 -c "
-          import sys, base64, json
-          token = sys.stdin.read().strip()
-          parts = token.split('.')
-          p = parts[1]
-          p += '=' * (4 - len(p) % 4)
-          d = json.loads(base64.b64decode(p, altchars=b'-_').decode('utf-8'))
-          print('All keys:', list(d.keys()))
-          for k, v in d.items():
-              if 'namespace' in str(k).lower() or 'serviceaccount' in str(k).lower():
-                  print(f'  {k}: {v}')
-          "
 
       - name: Get release name
         id: get_release_name
