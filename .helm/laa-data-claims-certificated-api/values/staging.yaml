@@ -1,5 +1,6 @@
 # Staging values for data-claims-certificated-api
 # Used directly with laa-generic-helm-chart (cloned via cp-deploy.yml).
+appName: ""
 nameOverride: data-claims-certificated-api
 namespace: laa-data-claims-certificated-api-staging
 environmentName: staging
