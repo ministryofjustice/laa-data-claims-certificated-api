@@ -153,6 +153,7 @@ jobs:
       helm_release_name: ${{ needs.create-preview-db.outputs.release-name }}
       helm_chart: ./laa-generic-helm-chart
       helm_values_path: .helm/laa-data-claims-certificated-api/values/uat.yaml
-      helm_additional_args: --debug
+      helm_additional_args: >-
+        --set ingress.green.annotations.external-dns\.alpha\.kubernetes\.io/set-identifier=${{ needs.create-preview-db.outputs.release-name }}-data-claims-certificated-api-laa-data-claims-certificated-api-uat-green
       k8s_service_account: laa-data-claims-certificated-api-uat-service-account
     secrets: inherit
