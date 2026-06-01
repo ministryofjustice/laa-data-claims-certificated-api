@@ -85,16 +85,18 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
 
-  deploy-uat-preview:
+  create-preview-db:
     runs-on: ubuntu-latest
     needs:
       - ecr-publish-image
       - sca-scan
-      - get-ecr-registry
     environment: uat
     permissions:
       id-token: write
       contents: read
+
+    outputs:
+      release-name: ${{ steps.get_release_name.outputs.release-name }}
 
     steps:
       - name: Checkout
@@ -105,20 +107,6 @@ jobs:
         uses: ./.github/actions/get_release_name
         with:
           pr-number: ${{ github.event.pull_request.number }}
-
-      - name: Obtain Octo STS Token
-        uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
-        id: octo_sts
-        with:
-          scope: ministryofjustice/laa-generic-helm-chart
-          identity: laa-reusable-actions-deploy
-
-      - name: Clone Helm Chart
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          repository: ministryofjustice/laa-generic-helm-chart
-          token: ${{ steps.octo_sts.outputs.token }}
-          path: laa-generic-helm-chart
 
       - name: Authenticate to the cluster
         uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@2aa2676c3cd9876ec7037ee8b3d729d0306cb7c6 # unversioned
@@ -147,26 +135,28 @@ jobs:
           echo "Creating database: $RELEASE_NAME"
           scripts/uat_create_db.sh "$RELEASE_NAME"
 
-      - name: Generate override values file
-        shell: bash
-        env:
-          RELEASE_NAME: ${{ steps.get_release_name.outputs.release-name }}
-        run: |
-          cat > /tmp/pr-override-values.yaml <<EOF
-          ingress:
-            green:
-              annotations:
-                external-dns.alpha.kubernetes.io/set-identifier: "${RELEASE_NAME}-green-laa-data-claims-certificated-api-uat-green"
-          EOF
-
-      - name: Helm Deploy
-        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/helm-deploy@main
-        with:
-          k8s_namespace: ${{ secrets.KUBE_NAMESPACE }}
-          helm_release_name: ${{ steps.get_release_name.outputs.release-name }}
-          helm_chart: ./laa-generic-helm-chart
-          helm_values_path: .helm/laa-data-claims-certificated-api/values/uat.yaml
-          helm_additional_args: -f /tmp/pr-override-values.yaml --set nameOverride=${{ steps.get_release_name.outputs.release-name }}
-          image_registry: ${{ needs.get-ecr-registry.outputs.registry }}
-          image_repo: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
-          image_tag: ${{ needs.ecr-publish-image.outputs.published_image_version }}
+  # The deploy MUST go through cp-deploy.yml: the octo-sts trust policy for
+  # laa-generic-helm-chart only accepts tokens whose job_workflow_ref matches
+  # cp-deploy.yml. Per-PR name + set-identifier are passed via helm_additional_args.
+  deploy-uat-preview:
+    needs:
+      - create-preview-db
+      - ecr-publish-image
+      - get-ecr-registry
+    permissions:
+      id-token: write
+      contents: read
+    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/cp-deploy.yml@main
+    with:
+      environment: uat
+      image_tag: ${{ needs.ecr-publish-image.outputs.published_image_version }}
+      image_registry: ${{ needs.get-ecr-registry.outputs.registry }}
+      image_repo: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
+      helm_release_name: ${{ needs.create-preview-db.outputs.release-name }}
+      helm_chart: ./laa-generic-helm-chart
+      helm_values_path: .helm/laa-data-claims-certificated-api/values/uat.yaml
+      helm_additional_args: >-
+        --set nameOverride=${{ needs.create-preview-db.outputs.release-name }}
+        --set ingress.green.annotations.external-dns\.alpha\.kubernetes\.io/set-identifier=${{ needs.create-preview-db.outputs.release-name }}-green-laa-data-claims-certificated-api-uat-green
+      k8s_service_account: laa-data-claims-certificated-api-uat-service-account
+    secrets: inherit
