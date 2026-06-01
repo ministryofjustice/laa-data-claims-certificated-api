@@ -157,6 +157,6 @@ jobs:
       helm_values_path: .helm/laa-data-claims-certificated-api/values/uat.yaml
       helm_additional_args: >-
         --set nameOverride=${{ needs.create-preview-db.outputs.release-name }}
-        --set ingress.green.annotations.external-dns\.alpha\.kubernetes\.io/set-identifier=${{ needs.create-preview-db.outputs.release-name }}-green-laa-data-claims-certificated-api-uat-green
+        --set "ingress.green.annotations.external-dns\.alpha\.kubernetes\.io/set-identifier=${{ needs.create-preview-db.outputs.release-name }}-green-laa-data-claims-certificated-api-uat-green"
       k8s_service_account: laa-data-claims-certificated-api-uat-service-account
     secrets: inherit
