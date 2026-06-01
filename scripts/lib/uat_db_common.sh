@@ -99,8 +99,14 @@ start_port_forward() {
   PF_PID=""
   trap _pf_cleanup EXIT
 
+  # A Pod is (almost) immutable, so `kubectl apply` fails if a stale pod from a
+  # previous/interrupted run still exists. Delete any existing pod first, then
+  # create a fresh one from the manifest.
+  echo 'Removing any pre-existing port-forward pod'
+  kubectl delete pod "$PF_POD_NAME" --ignore-not-found=true --wait=true
+
   echo 'Creating ephemeral port-forward pod'
-  kubectl apply -f "$manifest"
+  kubectl create -f "$manifest"
 
   echo 'Waiting for port-forward-pod to be ready...'
   kubectl wait --for=condition=ready pod -l "$PF_POD_LABEL" --timeout=120s
