@@ -155,8 +155,15 @@ jobs:
       helm_release_name: ${{ needs.create-preview-db.outputs.release-name }}
       helm_chart: ./laa-generic-helm-chart
       helm_values_path: .helm/laa-data-claims-certificated-api/values/uat.yaml
+      # For previews, point DB_NAME at the per-PR database instead of the shared UAT
+      # database. We replace the whole containerEnvironment.secrets list (dropping the
+      # secret-sourced DB_NAME) and supply DB_NAME as a variable, so the pod gets a
+      # single DB_NAME env var set to the per-PR database. Host/user/password stay
+      # secret-sourced (same RDS instance). --set-json replaces the array cleanly.
       helm_additional_args: >-
         --set nameOverride=${{ needs.create-preview-db.outputs.release-name }}
+        --set containerEnvironment.variables.DB_NAME=${{ needs.create-preview-db.outputs.release-name }}
+        --set-json 'containerEnvironment.secrets=[{"name":"DB_HOST","secretName":"rds-postgresql-instance-output","key":"rds_instance_address"},{"name":"DB_USERNAME","secretName":"rds-postgresql-instance-output","key":"database_username"},{"name":"DB_PASSWORD","secretName":"rds-postgresql-instance-output","key":"database_password"}]'
         --set "ingress.green.annotations.external-dns\.alpha\.kubernetes\.io/set-identifier=${{ needs.create-preview-db.outputs.release-name }}-green-laa-data-claims-certificated-api-uat-green"
       k8s_service_account: laa-data-claims-certificated-api-uat-service-account
     secrets: inherit
