@@ -137,7 +137,7 @@ jobs:
 
   # The deploy MUST go through cp-deploy.yml: the octo-sts trust policy for
   # laa-generic-helm-chart only accepts tokens whose job_workflow_ref matches
-  # cp-deploy.yml. Per-PR name + set-identifier are passed via helm_additional_args.
+  # cp-deploy.yml. Per-PR hostname + set-identifier are passed via helm_additional_args.
   deploy-uat-preview:
     needs:
       - create-preview-db
@@ -155,15 +155,22 @@ jobs:
       helm_release_name: ${{ needs.create-preview-db.outputs.release-name }}
       helm_chart: ./laa-generic-helm-chart
       helm_values_path: .helm/laa-data-claims-certificated-api/values/uat.yaml
-      # For previews, point DB_NAME at the per-PR database instead of the shared UAT
-      # database. We replace the whole containerEnvironment.secrets list (dropping the
-      # secret-sourced DB_NAME) and supply DB_NAME as a variable, so the pod gets a
-      # single DB_NAME env var set to the per-PR database. Host/user/password stay
-      # secret-sourced (same RDS instance). --set-json replaces the array cleanly.
+      # Preview overrides (release name is e.g. pr-9):
+      #  - nameOverride is intentionally NOT overridden: keeping it as
+      #    data-claims-certificated-api makes the chart's fullname helper produce
+      #    <release>-data-claims-certificated-api (e.g. pr-9-data-claims-certificated-api),
+      #    so the deployment, service, pods and ingress all carry the release prefix.
+      #  - DB_NAME points at the per-PR database instead of the shared UAT database.
+      #    We replace the whole containerEnvironment.secrets list (dropping the
+      #    secret-sourced DB_NAME) and supply DB_NAME as a variable, so the pod gets a
+      #    single DB_NAME env var. Host/user/password stay secret-sourced (same RDS
+      #    instance). --set-json replaces the array cleanly.
+      #  - ingress hostname and set-identifier are made per-release so each PR gets its
+      #    own DNS record (pattern: <release>-<namespace>.cloud-platform...).
       helm_additional_args: >-
-        --set nameOverride=${{ needs.create-preview-db.outputs.release-name }}
         --set containerEnvironment.variables.DB_NAME=${{ needs.create-preview-db.outputs.release-name }}
         --set-json 'containerEnvironment.secrets=[{"name":"DB_HOST","secretName":"rds-postgresql-instance-output","key":"rds_instance_address"},{"name":"DB_USERNAME","secretName":"rds-postgresql-instance-output","key":"database_username"},{"name":"DB_PASSWORD","secretName":"rds-postgresql-instance-output","key":"database_password"}]'
-        --set "ingress.green.annotations.external-dns\.alpha\.kubernetes\.io/set-identifier=${{ needs.create-preview-db.outputs.release-name }}-green-laa-data-claims-certificated-api-uat-green"
+        --set ingress.green.hostname=${{ needs.create-preview-db.outputs.release-name }}-laa-data-claims-certificated-api-uat.cloud-platform.service.justice.gov.uk
+        --set "ingress.green.annotations.external-dns\.alpha\.kubernetes\.io/set-identifier=${{ needs.create-preview-db.outputs.release-name }}-data-claims-certificated-api-green-laa-data-claims-certificated-api-uat-green"
       k8s_service_account: laa-data-claims-certificated-api-uat-service-account
     secrets: inherit
