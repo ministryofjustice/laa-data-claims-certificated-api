@@ -136,5 +136,5 @@ jobs:
       image_tag: ${{ needs.ecr-publish-image.outputs.published_image_version }}
       image_registry: ${{ needs.get-ecr-registry.outputs.registry }}
       image_repo: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
-      k8s_service_account: laa-data-claims-certificated-api-production-service-account
+      k8s_service_account: laa-data-claims-certificated-api-prod-service-account
     secrets: inherit

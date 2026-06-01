@@ -29,7 +29,8 @@ spec:
           type: RuntimeDefault
       containers:
         - name: port-forward-pod
-          image: ministryofjustice/port-forward
+          # Pinned by digest for supply-chain integrity (was implicit :latest).
+          image: ministryofjustice/port-forward@sha256:207e37914f12989ebbf7f8e9d6e7fff3671ae9ac49a4af618dea14a82a6ddfe0
           imagePullPolicy: Always
           ports:
             - containerPort: 5432

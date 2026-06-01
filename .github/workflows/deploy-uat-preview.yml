@@ -1,7 +1,6 @@
 name: Deploy UAT preview
 
 on:
-  workflow_dispatch:
   pull_request:
 
 permissions:
