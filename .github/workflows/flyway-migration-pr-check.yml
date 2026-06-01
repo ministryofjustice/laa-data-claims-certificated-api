@@ -20,9 +20,15 @@ jobs:
 
       - name: Check for Flyway migration files
         id: check-flyway
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
-          echo "$CHANGED_FILES" | grep -qE "resources/db/.*/.*\.sql$" && echo "flyway_found=true" >> $GITHUB_ENV || echo "flyway_found=false" >> $GITHUB_ENV
+          # Use the merge-base so a rebased/force-pushed PR still produces an
+          # accurate file list (avoids false negatives in this merge guard).
+          MERGE_BASE=$(git merge-base "$BASE_SHA" "$HEAD_SHA")
+          CHANGED_FILES=$(git diff --name-only "$MERGE_BASE" "$HEAD_SHA")
+          echo "$CHANGED_FILES" | grep -qE "resources/db/.*/.*\.sql$" && echo "flyway_found=true" >> "$GITHUB_ENV" || echo "flyway_found=false" >> "$GITHUB_ENV"
 
       - name: Create or update PR comment
         if: env.flyway_found == 'true'

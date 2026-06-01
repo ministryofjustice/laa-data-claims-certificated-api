@@ -9,10 +9,13 @@ function _uat_create_db() {
   "
 
   set -e
+  # last_command/current_command are populated by the DEBUG trap at runtime.
+  # shellcheck disable=SC2154
   trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
+  # shellcheck disable=SC2154
   trap 'echo "\"${last_command}\" command completed with exit code $?."' EXIT
 
-  # shellcheck source=lib/uat_db_common.sh
+  # shellcheck source=scripts/lib/uat_db_common.sh
   source "$(dirname "${BASH_SOURCE[0]}")/lib/uat_db_common.sh"
 
   require_uat_namespace
