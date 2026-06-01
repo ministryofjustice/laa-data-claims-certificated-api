@@ -115,15 +115,6 @@ jobs:
           kube-cluster: ${{ secrets.KUBE_CLUSTER }}
           kube-namespace: ${{ secrets.KUBE_NAMESPACE }}
 
-      - name: Apply port-forward deployment and service
-        shell: bash
-        env:
-          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
-        run: |
-          kubectl apply -f .helm/laa-data-claims-certificated-api/templates/port-forward-deployment.yaml \
-            --namespace "$KUBE_NAMESPACE"
-          kubectl apply -f .helm/laa-data-claims-certificated-api/templates/port-forward-service.yaml \
-            --namespace "$KUBE_NAMESPACE"
 
       - name: Create preview database
         if: ${{ github.event.pull_request.number != '' }}
