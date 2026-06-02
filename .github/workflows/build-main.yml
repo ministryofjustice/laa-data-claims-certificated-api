@@ -1,9 +1,8 @@
 name: Build main
 
 on:
-  pull_request:
+  push:
     branches: [ main ]
-    types: [ closed ]
 
 env:
   JAVA_VERSION: &JAVA_VERSION '25'
@@ -11,12 +10,10 @@ env:
 
 jobs:
   build:
-    if: ${{ github.event.pull_request.merged == true }}
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@dc4173bfc12f714d7e8cbdd9f524d00ef02e25c4 # v2
     permissions:
       contents: write
       packages: write
-      pull-requests: write
     with:
       java_version: *JAVA_VERSION
       java_distribution: *JDK_DISTRIBUTION
