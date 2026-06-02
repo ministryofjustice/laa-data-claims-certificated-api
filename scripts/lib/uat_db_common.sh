@@ -9,6 +9,7 @@
 #   RELEASE_NAME, DB_NAME, DB_USER, DB_PWD   (set by the functions below)
 #   require_uat_namespace
 #   require_commands <cmd>...
+#   require_cluster_reachable
 #   parse_release_name_arg <usage> "$@"
 #   load_rds_credentials
 #   start_port_forward        (installs an EXIT trap that tears everything down)
@@ -48,6 +49,26 @@ require_commands() {
     echo "       Install them and retry (psql is provided by 'brew install libpq')." >&2
     return 1
   fi
+}
+
+# Verify the Kubernetes API server is reachable before running any long-lived
+# kubectl operations. Without this, a transient API/network outage makes each
+# kubectl call sit through its full timeout (~32s) several times before failing,
+# wasting minutes. A short bounded retry self-heals brief blips; a sustained
+# outage fails fast with a clear message.
+require_cluster_reachable() {
+  local attempts=3
+  local i
+  for (( i = 1; i <= attempts; i++ )); do
+    if kubectl version --request-timeout=10s >/dev/null 2>&1; then
+      return 0
+    fi
+    echo "Kubernetes API not reachable (attempt ${i}/${attempts})..." >&2
+    sleep 5
+  done
+  echo "ERROR: cannot reach the Kubernetes API server after ${attempts} attempts." >&2
+  echo "       This is usually a transient Cloud Platform/network issue — re-run the job." >&2
+  return 1
 }
 
 # Validate exactly one arg is given and it fits PostgreSQL's 63-char db-name limit.

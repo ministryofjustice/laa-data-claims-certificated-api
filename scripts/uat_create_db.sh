@@ -20,6 +20,7 @@ function _uat_create_db() {
 
   require_uat_namespace
   require_commands kubectl psql nc
+  require_cluster_reachable
   parse_release_name_arg "$usage" "$@"
   load_rds_credentials
   start_port_forward
