@@ -10,6 +10,11 @@ env:
 
 jobs:
   build:
+    # Shared workflow (pinned by SHA). With no overrides it runs `build` (compile
+    # + unit tests) and surfaces JUnit/checkstyle/jacoco reports — those inputs
+    # default to true upstream, so we don't restate them here. The only behavioural
+    # override we need is create_tag: true, which cuts the release tag that in turn
+    # triggers deploy-main.yml. integration_test_task opts the build into integration tests.
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@dc4173bfc12f714d7e8cbdd9f524d00ef02e25c4 # v2
     permissions:
       contents: write

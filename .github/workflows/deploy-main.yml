@@ -14,6 +14,12 @@ env:
 
 jobs:
   assemble:
+    # Same shared workflow as build-main.yml, but here it only packages the
+    # artifact to ship — validation (tests/quality gates) already ran in
+    # build-main.yml before the tag was created. We override build_command to
+    # 'assemble' (no tests) and therefore turn off the report inputs (which
+    # default to true upstream) since an assemble-only run produces no test,
+    # coverage or checkstyle output to publish.
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@dc4173bfc12f714d7e8cbdd9f524d00ef02e25c4 # v2
     permissions:
       contents: write
