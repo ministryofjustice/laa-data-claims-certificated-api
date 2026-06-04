@@ -72,26 +72,35 @@ jobs:
       ecr_role_to_assume: ${{ secrets.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_ROLE_TO_ASSUME }}
       snyk_token: ""
 
-  # Reusable-workflow "uses:" jobs cannot reference secrets.* in their `with:`
-  # inputs, so expose the Terraform-managed ECR_REGISTRY_URL secret as a job output
-  # that the deploy jobs can pass through (outputs are allowed in `with:`).
-  resolve-registry:
+  # Obtain the ECR registry host for the Helm deploy. The shared ecr-publish-image
+  # workflow logs into ECR but does not output the registry, and a reusable-workflow
+  # "uses:" job can't read secrets.* in its `with:` (nor can a secret be piped through
+  # a job output — masking blanks it). So we log in here and expose the non-secret
+  # registry value as a job output.
+  get-ecr-registry:
     needs: [ assemble ]
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     outputs:
-      registry: ${{ steps.reg.outputs.registry }}
+      registry: ${{ steps.login-ecr.outputs.registry }}
     steps:
-      - name: Expose ECR registry host
-        id: reg
-        env:
-          ECR_REGISTRY_URL: ${{ secrets.ECR_REGISTRY_URL }}
-        run: echo "registry=${ECR_REGISTRY_URL}" >> "$GITHUB_OUTPUT"
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.0.1
+        with:
+          aws-region: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REGION }}
+          role-to-assume: ${{ secrets.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_ROLE_TO_ASSUME }}
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
 
   deploy-uat:
     needs:
       - ecr-publish-image
       - sca-scan
-      - resolve-registry
+      - get-ecr-registry
     permissions:
       id-token: write
       contents: read
@@ -99,7 +108,7 @@ jobs:
     with:
       environment: uat
       image_tag: ${{ needs.ecr-publish-image.outputs.published_image_version }}
-      image_registry: ${{ needs.resolve-registry.outputs.registry }}
+      image_registry: ${{ needs.get-ecr-registry.outputs.registry }}
       image_repo: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
       k8s_service_account: laa-data-claims-certificated-api-uat-service-account
     secrets: inherit
@@ -108,7 +117,7 @@ jobs:
     needs:
       - ecr-publish-image
       - sca-scan
-      - resolve-registry
+      - get-ecr-registry
       - deploy-uat
     permissions:
       id-token: write
@@ -117,7 +126,7 @@ jobs:
     with:
       environment: staging
       image_tag: ${{ needs.ecr-publish-image.outputs.published_image_version }}
-      image_registry: ${{ needs.resolve-registry.outputs.registry }}
+      image_registry: ${{ needs.get-ecr-registry.outputs.registry }}
       image_repo: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
       k8s_service_account: laa-data-claims-certificated-api-staging-service-account
     secrets: inherit
@@ -126,7 +135,7 @@ jobs:
     needs:
       - ecr-publish-image
       - sca-scan
-      - resolve-registry
+      - get-ecr-registry
       - deploy-staging
     permissions:
       id-token: write
@@ -135,7 +144,7 @@ jobs:
     with:
       environment: production
       image_tag: ${{ needs.ecr-publish-image.outputs.published_image_version }}
-      image_registry: ${{ needs.resolve-registry.outputs.registry }}
+      image_registry: ${{ needs.get-ecr-registry.outputs.registry }}
       image_repo: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
       k8s_service_account: laa-data-claims-certificated-api-prod-service-account
     secrets: inherit
