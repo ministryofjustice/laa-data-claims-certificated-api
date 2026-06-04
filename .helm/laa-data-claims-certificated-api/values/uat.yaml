@@ -64,15 +64,11 @@ containerEnvironment:
 ingress:
   green:
     enabled: true
-    className: modsec-non-prod
-    hostname: "data-claims-certificated-api-uat.cloud-platform.service.justice.gov.uk"
+    # Internal-only ingress (not publicly reachable).
+    className: internal-non-prod
+    hostname: "data-claims-certificated-api-uat.internal-non-prod.cloud-platform.service.justice.gov.uk"
     annotations:
       external-dns.alpha.kubernetes.io/aws-weight: "100"
       external-dns.alpha.kubernetes.io/set-identifier: "data-claims-certificated-api-uat-green-laa-data-claims-certificated-api-uat-green"
-      nginx.ingress.kubernetes.io/enable-modsecurity: "true"
-      nginx.ingress.kubernetes.io/modsecurity-snippet: |
-        SecRuleEngine On
-        SecAction "id:900200,phase:1,nolog,pass,t:none,setvar:tx.allowed_methods=GET HEAD POST OPTIONS PUT PATCH DELETE"
-        SecDefaultAction "phase:2,pass,log,tag:github_team=laa-data-stewardship-payments-team,tag:namespace=laa-data-claims-certificated-api-uat"
 servicemonitor:
   enabled: false
