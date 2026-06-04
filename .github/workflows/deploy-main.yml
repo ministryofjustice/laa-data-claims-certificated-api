@@ -35,7 +35,6 @@ jobs:
       jacoco_coverage_report: 'false'
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
-      aws_region: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_AWS_REGION }}
 
   sca-scan:
     needs:
@@ -62,7 +61,7 @@ jobs:
       java_version: *JAVA_VERSION
       java_distribution: *JDK_DISTRIBUTION
       jar_subproject: 'laa-data-claims-certificated-service'
-      image_version: ${{ format('{0}-{1}', vars.LAA_DATA_CLAIMS_CERTIFICATED_API_IMAGE_PREFIX, needs.assemble.outputs.published_artifact_version) }}
+      image_version: ${{ format('data-claims-certificated-api-{0}', needs.assemble.outputs.published_artifact_version) }}
       # Docker image scan is handled by sca-analysis.yml using short-lived SNYK_CLIENT_ID/SECRET
       # tokens — disabling here to avoid duplicate scans and the need for a static SNYK_TOKEN.
       image_scan: 'false'

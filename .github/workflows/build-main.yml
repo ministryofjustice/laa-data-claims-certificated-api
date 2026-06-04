@@ -31,7 +31,6 @@ jobs:
       jacoco_coverage_report_path: 'laa-data-claims-certificated-service/build/reports/jacoco'
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
-      aws_region: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_AWS_REGION }}
 
   sca-scan:
     needs:
