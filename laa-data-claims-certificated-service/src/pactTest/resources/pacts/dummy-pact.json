@@ -1,0 +1,36 @@
+{
+  "consumer": {
+    "name": "dummy-consumer"
+  },
+  "provider": {
+    "name": "laa-data-claims-certificated-api"
+  },
+  "interactions": [
+    {
+      "description": "a request for an item",
+      "providerStates": [
+        {
+          "name": "An item exists with ID 1"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/items/1"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "id": 1
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  }
+}
