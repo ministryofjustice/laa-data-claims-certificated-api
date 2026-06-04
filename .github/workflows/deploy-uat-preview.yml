@@ -106,6 +106,21 @@ jobs:
           echo "Creating database: $RELEASE_NAME"
           scripts/uat_create_db.sh "$RELEASE_NAME"
 
+  # Reusable-workflow "uses:" jobs cannot reference secrets.* in their `with:`
+  # inputs, so expose the Terraform-managed ECR_REGISTRY_URL secret as a job output
+  # that the deploy job can pass through (outputs are allowed in `with:`).
+  resolve-registry:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    outputs:
+      registry: ${{ steps.reg.outputs.registry }}
+    steps:
+      - name: Expose ECR registry host
+        id: reg
+        env:
+          ECR_REGISTRY_URL: ${{ secrets.ECR_REGISTRY_URL }}
+        run: echo "registry=${ECR_REGISTRY_URL}" >> "$GITHUB_OUTPUT"
+
   # The deploy MUST go through cp-deploy.yml: the octo-sts trust policy for
   # laa-generic-helm-chart only accepts tokens whose job_workflow_ref matches
   # cp-deploy.yml. Per-PR hostname + set-identifier are passed via helm_additional_args.
@@ -113,6 +128,7 @@ jobs:
     needs:
       - create-preview-db
       - ecr-publish-image
+      - resolve-registry
     permissions:
       id-token: write
       contents: read
@@ -120,8 +136,7 @@ jobs:
     with:
       environment: uat
       image_tag: ${{ needs.ecr-publish-image.outputs.published_image_version }}
-      # Registry host is published as ECR_REGISTRY_URL secret by CP ECR Terraform module
-      image_registry: ${{ secrets.ECR_REGISTRY_URL }}
+      image_registry: ${{ needs.resolve-registry.outputs.registry }}
       image_repo: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
       helm_release_name: ${{ needs.create-preview-db.outputs.release-name }}
       helm_chart: ./laa-generic-helm-chart
@@ -179,7 +194,7 @@ jobs:
             const host = `${process.env.RELEASE_NAME}-laa-data-claims-certificated-api-uat.cloud-platform.service.justice.gov.uk`;
             const body = `${marker}\n### 🚀 UAT preview deployed\n\n`
               + `**Swagger UI:** https://${host}/swagger-ui/index.html\n`
-              + `**OpenAPI docs:** https://${host}/v3/api-docs\n\n`
+              + `**OpenAPI docs:** https://${host}/v3/api-docs\n`;
             await github.rest.issues.createComment({ owner, repo, issue_number, body });
 
 
