@@ -75,7 +75,6 @@ dependencies {
 
     implementation 'org.mapstruct:mapstruct:1.6.3'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
-    implementation 'org.javers:javers-spring-boot-starter-sql:7.10.0'
 
     // temporary dependency overrides see README
     implementation 'com.fasterxml.jackson.core:jackson-core:2.21.2'

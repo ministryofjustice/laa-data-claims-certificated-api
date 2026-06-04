@@ -25,7 +25,7 @@ import uk.gov.justice.laa.data.claims.certificated.api.entity.ItemEntity;
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Provider(value = "laa-data-claims-certificated-api")
-//@PactBroker // <-- uncomment this and remove the @PactFolder
+// @PactBroker // <-- uncomment this and remove the @PactFolder
 @PactFolder("src/pactTest/resources/pacts")
 public class ItemProviderPactTest extends AbstractProviderPactTests {
 

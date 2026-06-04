@@ -3,7 +3,6 @@ package uk.gov.justice.laa.data.claims.certificated.api;
 import jakarta.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
-import org.javers.spring.boot.sql.JaversSqlAutoConfiguration;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.actuate.endpoint.web.PathMappedEndpoints;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -14,8 +13,7 @@ import uk.gov.justice.laa.data.claims.certificated.api.repository.ItemRepository
 
 @EnableAutoConfiguration(
     exclude = {
-      DataSourceAutoConfiguration.class,
-      JaversSqlAutoConfiguration.class,
+      DataSourceAutoConfiguration.class
     })
 @TestPropertySource(
     properties = {
