@@ -64,24 +64,6 @@ jobs:
       ecr_role_to_assume: ${{ secrets.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_ROLE_TO_ASSUME }}
       snyk_token: ""
 
-  get-ecr-registry:
-    needs: [ build ]
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    outputs:
-      registry: ${{ steps.login-ecr.outputs.registry }}
-    steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.0.1
-        with:
-          aws-region: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REGION }}
-          role-to-assume: ${{ secrets.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_ROLE_TO_ASSUME }}
-
-      - name: Login to ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
 
   create-preview-db:
     runs-on: ubuntu-latest
@@ -131,7 +113,6 @@ jobs:
     needs:
       - create-preview-db
       - ecr-publish-image
-      - get-ecr-registry
     permissions:
       id-token: write
       contents: read
@@ -139,7 +120,8 @@ jobs:
     with:
       environment: uat
       image_tag: ${{ needs.ecr-publish-image.outputs.published_image_version }}
-      image_registry: ${{ needs.get-ecr-registry.outputs.registry }}
+      # Registry host is published as ECR_REGISTRY_URL secret by CP ECR Terraform module
+      image_registry: ${{ secrets.ECR_REGISTRY_URL }}
       image_repo: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
       helm_release_name: ${{ needs.create-preview-db.outputs.release-name }}
       helm_chart: ./laa-generic-helm-chart
