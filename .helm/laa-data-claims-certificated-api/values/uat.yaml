@@ -62,13 +62,28 @@ containerEnvironment:
       secretName: rds-postgresql-instance-output
       key: database_password
 ingress:
+  # Dual exposure:
+  #  - green = internal ingress for in-cluster service-to-service traffic.
+  #  - blue  = public (modsec/WAF) ingress so the API/Swagger is reachable from a
+  #    laptop for reviewers and testers
   green:
     enabled: true
-    # Internal-only ingress (not publicly reachable).
     className: internal-non-prod
     hostname: "data-claims-certificated-api-uat.internal-non-prod.cloud-platform.service.justice.gov.uk"
     annotations:
       external-dns.alpha.kubernetes.io/aws-weight: "100"
-      external-dns.alpha.kubernetes.io/set-identifier: "data-claims-certificated-api-uat-green-laa-data-claims-certificated-api-uat-green"
+      external-dns.alpha.kubernetes.io/set-identifier: "data-claims-certificated-api-green-laa-data-claims-certificated-api-uat-green"
+  blue:
+    enabled: true
+    className: modsec-non-prod
+    hostname: "data-claims-certificated-api-uat.cloud-platform.service.justice.gov.uk"
+    annotations:
+      external-dns.alpha.kubernetes.io/aws-weight: "100"
+      external-dns.alpha.kubernetes.io/set-identifier: "data-claims-certificated-api-blue-laa-data-claims-certificated-api-uat-green"
+      nginx.ingress.kubernetes.io/enable-modsecurity: "true"
+      nginx.ingress.kubernetes.io/modsecurity-snippet: |
+        SecRuleEngine On
+        SecAction "id:900200,phase:1,nolog,pass,t:none,setvar:tx.allowed_methods=GET HEAD POST OPTIONS PUT PATCH DELETE"
+        SecDefaultAction "phase:2,pass,log,tag:github_team=laa-data-stewardship-payments-team,tag:namespace=laa-data-claims-certificated-api-uat"
 servicemonitor:
   enabled: false

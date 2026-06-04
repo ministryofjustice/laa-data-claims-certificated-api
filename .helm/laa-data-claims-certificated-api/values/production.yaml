@@ -54,13 +54,13 @@ containerEnvironment:
       secretName: rds-postgresql-instance-output
       key: database_password
 ingress:
+  # Production is internal-only (green = internal ingress, no public/blue ingress)
   green:
     enabled: true
-    # Internal-only ingress (not publicly reachable).
     className: internal
     hostname: "data-claims-certificated-api-production.internal.cloud-platform.service.justice.gov.uk"
     annotations:
       external-dns.alpha.kubernetes.io/aws-weight: "100"
-      external-dns.alpha.kubernetes.io/set-identifier: "data-claims-certificated-api-production-green-laa-data-claims-certificated-api-prod-green"
+      external-dns.alpha.kubernetes.io/set-identifier: "data-claims-certificated-api-green-laa-data-claims-certificated-api-prod-green"
 servicemonitor:
   enabled: false

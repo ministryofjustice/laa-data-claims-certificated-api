@@ -160,9 +160,10 @@ jobs:
       #    secret-sourced DB_NAME) and supply DB_NAME as a variable, so the pod gets a
       #    single DB_NAME env var. Host/user/password stay secret-sourced (same RDS
       #    instance). --set-json replaces the array cleanly.
-      #  - ingress hostname and set-identifier are made per-release so each PR gets its
-      #    own DNS record. The host uses the internal (non-prod) zone, matching uat.yaml's
-      #    internal-only className (pattern: <release>-<namespace>.internal-non-prod.cloud-platform...).
+      #  - ingress hostnames + set-identifiers are made per-release so each PR gets its
+      #    own DNS records. uat.yaml defines two ingresses: green (internal, in-cluster)
+      #    and blue (public/modsec, laptop-reachable). We override both hosts per PR; the
+      #    PR comment links the blue (public) host so reviewers can browse it.
       #  - Swagger UI / API docs are enabled for UAT (including previews) via uat.yaml,
       #    so the root-less REST API has a browsable landing page for reviewers.
       helm_additional_args: >-
@@ -170,6 +171,8 @@ jobs:
         --set-json 'containerEnvironment.secrets=[{"name":"DB_HOST","secretName":"rds-postgresql-instance-output","key":"rds_instance_address"},{"name":"DB_USERNAME","secretName":"rds-postgresql-instance-output","key":"database_username"},{"name":"DB_PASSWORD","secretName":"rds-postgresql-instance-output","key":"database_password"}]'
         --set ingress.green.hostname=${{ needs.create-preview-db.outputs.release-name }}-laa-data-claims-certificated-api-uat.internal-non-prod.cloud-platform.service.justice.gov.uk
         --set "ingress.green.annotations.external-dns\.alpha\.kubernetes\.io/set-identifier=${{ needs.create-preview-db.outputs.release-name }}-data-claims-certificated-api-green-laa-data-claims-certificated-api-uat-green"
+        --set ingress.blue.hostname=${{ needs.create-preview-db.outputs.release-name }}-laa-data-claims-certificated-api-uat.cloud-platform.service.justice.gov.uk
+        --set "ingress.blue.annotations.external-dns\.alpha\.kubernetes\.io/set-identifier=${{ needs.create-preview-db.outputs.release-name }}-data-claims-certificated-api-blue-laa-data-claims-certificated-api-uat-green"
       k8s_service_account: laa-data-claims-certificated-api-uat-service-account
     secrets: inherit
 
@@ -201,7 +204,7 @@ jobs:
               core.info('Preview URL comment already exists — nothing to do.');
               return;
             }
-            const host = `${process.env.RELEASE_NAME}-laa-data-claims-certificated-api-uat.internal-non-prod.cloud-platform.service.justice.gov.uk`;
+            const host = `${process.env.RELEASE_NAME}-laa-data-claims-certificated-api-uat.cloud-platform.service.justice.gov.uk`;
             const body = `${marker}\n### 🚀 UAT preview deployed\n\n`
               + `**Swagger UI:** https://${host}/swagger-ui/index.html\n`
               + `**OpenAPI docs:** https://${host}/v3/api-docs\n`;
