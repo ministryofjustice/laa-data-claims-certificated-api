@@ -45,6 +45,9 @@ serviceAccountName: laa-data-claims-certificated-api-uat-service-account
 #     user/password stay shared (same RDS instance) and still come from the secret.
 containerEnvironment:
   enabled: true
+  variables:
+    SPRINGDOC_API_DOCS_ENABLED: "true"
+    SPRINGDOC_SWAGGER_UI_ENABLED: "true"
   secrets:
     - name: DB_HOST
       secretName: rds-postgresql-instance-output

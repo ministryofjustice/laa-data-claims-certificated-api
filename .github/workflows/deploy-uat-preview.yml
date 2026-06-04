@@ -138,6 +138,8 @@ jobs:
       #    instance). --set-json replaces the array cleanly.
       #  - ingress hostname and set-identifier are made per-release so each PR gets its
       #    own DNS record (pattern: <release>-<namespace>.cloud-platform...).
+      #  - Swagger UI / API docs are enabled for UAT (including previews) via uat.yaml,
+      #    so the root-less REST API has a browsable landing page for reviewers.
       helm_additional_args: >-
         --set containerEnvironment.variables.DB_NAME=${{ needs.create-preview-db.outputs.release-name }}
         --set-json 'containerEnvironment.secrets=[{"name":"DB_HOST","secretName":"rds-postgresql-instance-output","key":"rds_instance_address"},{"name":"DB_USERNAME","secretName":"rds-postgresql-instance-output","key":"database_username"},{"name":"DB_PASSWORD","secretName":"rds-postgresql-instance-output","key":"database_password"}]'
@@ -175,7 +177,9 @@ jobs:
               return;
             }
             const host = `${process.env.RELEASE_NAME}-laa-data-claims-certificated-api-uat.cloud-platform.service.justice.gov.uk`;
-            const body = `${marker}\n### 🚀 UAT preview deployed\n\n**URL:** https://${host}`;
+            const body = `${marker}\n### 🚀 UAT preview deployed\n\n`
+              + `**Swagger UI:** https://${host}/swagger-ui/index.html\n`
+              + `**OpenAPI docs:** https://${host}/v3/api-docs\n\n`
             await github.rest.issues.createComment({ owner, repo, issue_number, body });
 
 
