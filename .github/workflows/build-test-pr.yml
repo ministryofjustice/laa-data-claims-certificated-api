@@ -24,7 +24,7 @@ jobs:
         uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
 
       - name: Build and test
-        run: ./gradlew build
+        run: ./gradlew build pactTest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
