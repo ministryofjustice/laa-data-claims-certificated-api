@@ -94,7 +94,6 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'au.com.dius.pact.provider:spring7:4.7.1'
-    testImplementation 'uk.gov.laa.springboot:laa-spring-boot-starter-auth:2.2.6'
 
     testRuntimeOnly 'org.flywaydb:flyway-database-postgresql'
 
