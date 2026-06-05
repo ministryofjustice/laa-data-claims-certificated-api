@@ -19,8 +19,3 @@ out/
 
 ### VS Code ###
 .vscode/
-
-### Python (initialise-service.py artifacts) ###
-__pycache__/
-*.pyc
-
