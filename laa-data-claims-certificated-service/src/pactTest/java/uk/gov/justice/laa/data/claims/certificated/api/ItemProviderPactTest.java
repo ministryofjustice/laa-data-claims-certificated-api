@@ -9,7 +9,7 @@ import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvide
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.TargetRequestFilter;
-import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
+import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpRequest;
@@ -25,8 +25,8 @@ import uk.gov.justice.laa.data.claims.certificated.api.entity.ItemEntity;
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Provider(value = "laa-data-claims-certificated-api")
-// @PactBroker // <-- uncomment this and remove the @PactFolder
-@PactFolder("src/pactTest/resources/pacts")
+@PactBroker // <-- uncomment this and remove the @PactFolder
+// @PactFolder("src/pactTest/resources/pacts")
 public class ItemProviderPactTest extends AbstractProviderPactTests {
 
   @LocalServerPort private int port;

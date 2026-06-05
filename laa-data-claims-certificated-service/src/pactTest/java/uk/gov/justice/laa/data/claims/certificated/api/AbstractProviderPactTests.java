@@ -11,10 +11,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.justice.laa.data.claims.certificated.api.repository.ItemRepository;
 
-@EnableAutoConfiguration(
-    exclude = {
-      DataSourceAutoConfiguration.class
-    })
+@EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class})
 @TestPropertySource(
     properties = {
       "laa.springboot.starter.auth.authentication-header=Authorization",
