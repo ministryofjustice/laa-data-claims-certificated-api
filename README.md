@@ -171,9 +171,9 @@ The application uses Pact provider verification tests to ensure API compatibilit
 #### Local Development / Offline Mode
 While the service is in initial development and before a consumer publishes a contract to the live Pact Broker, verification runs in offline mode using a local pact contract file.
 
-1. Ensure your dummy consumer contract JSON file is located at:
+1. Ensure the dummy consumer contract JSON file is located at:
    `src/pactTest/resources/pacts/`
-2. Ensure your test class uses the `@PactFolder` annotation pointed to that directory.
+2. Ensure the test class uses the `@PactFolder` annotation pointed to that directory.
 3. Execute the Pact test suite locally:
    ```bash
    ./gradlew pactTest

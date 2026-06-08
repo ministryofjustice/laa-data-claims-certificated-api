@@ -15,9 +15,9 @@ jobs:
       contents: write
       packages: write
     with:
-      # Tweaked: Changed from subproject path to your flat root task execution
+      # Tweaked: Changed from subproject path to the flat root task execution
       pact_test_task: "pactTest"
-      # Tweaked: Your new app's matching provider name string
+      # Tweaked: The app's matching provider name string
       provider_name: 'laa-data-claims-certificated-api'
       consumer_name: ${{ github.event.inputs.consumer }}
       consumer_branch: ${{ github.event.inputs.consumerBranch }}
