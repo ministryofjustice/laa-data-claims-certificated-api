@@ -93,9 +93,71 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'au.com.dius.pact.provider:spring7:4.7.1'
+
     testRuntimeOnly 'org.flywaydb:flyway-database-postgresql'
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    sourceSets {
+        pactTest {
+            java {
+                compileClasspath += main.output + test.output
+                runtimeClasspath += main.output + test.output
+            }
+        }
+    }
+
+    configurations {
+        pactTestImplementation.extendsFrom(testImplementation)
+        pactTestRuntimeOnly.extendsFrom(testRuntimeOnly)
+    }
+
+    dependencies {
+        // Pact Spring 6/7 provider support
+        pactTestImplementation 'au.com.dius.pact.provider:spring7:4.7.1'
+        pactTestImplementation 'org.apache.httpcomponents:httpclient:4.5.13'
+    }
+
+    tasks.register('pactTest', Test) {
+        description = 'Runs the pact tests.'
+        group = 'verification'
+        useJUnitPlatform()
+
+        testClassesDirs = sourceSets.pactTest.output.classesDirs
+        classpath = sourceSets.pactTest.runtimeClasspath
+
+        // Publish if both username and password environment variables are provided
+        def canPublish =
+                providers.environmentVariable('PACT_BROKER_USERNAME').isPresent() &&
+                        providers.environmentVariable('PACT_BROKER_PASSWORD').isPresent()
+
+        if (canPublish) {
+            systemProperty 'pact.verifier.publishResults', 'true'
+        }
+
+        // Pass environment variables into the test process as System Properties
+        systemProperty 'pact.provider.version', providers.environmentVariable('GIT_SHA').getOrElse('1.0.0')
+        systemProperty 'pactbroker.url', providers.environmentVariable('PACT_BROKER_URL').getOrElse('https://laa-data-pact-broker.apps.live.cloud-platform.service.justice.gov.uk/')
+        systemProperty 'pactbroker.auth.username', providers.environmentVariable('PACT_BROKER_USERNAME').getOrElse('ABC')
+        systemProperty 'pactbroker.auth.password', providers.environmentVariable('PACT_BROKER_PASSWORD').getOrElse('ABC')
+
+        // Only set the consumer filter and branch selectors if PACT_CONSUMER_NAME is provided
+        def consumerName = providers.environmentVariable('PACT_CONSUMER_NAME').orNull
+
+        if (consumerName) {
+            systemProperty 'pact.filter.consumers', consumerName
+        }
+        def branch = providers.environmentVariable('PACT_CONSUMER_BRANCH').getOrElse('main')
+        systemProperty 'pactbroker.consumerversionselectors.rawjson', "[{\"branch\":\"${branch}\"}]"
+
+        // Resolve the directory path to a String for the system property
+        systemProperty 'pact.rootDir', layout.buildDirectory.dir("pacts").get().asFile.path
+    }
+
+    tasks.named('processPactTestResources') {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
 }
