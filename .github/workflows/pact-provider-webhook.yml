@@ -1,0 +1,29 @@
+name: Pact triggered workflow
+run-name: Pact tests triggered by `${{ github.event.inputs.consumer }}`/`${{ github.event.inputs.consumerBranch }}`
+
+on:
+  workflow_dispatch:
+    inputs:
+      consumer:       { required: true, description: "Consumer name (e.g., laa-microservice)" }
+      consumerBranch: { required: true, description: "Consumer branch (e.g., main)" }
+
+jobs:
+  pact-test:
+    # Keeps using the shared Ministry of Justice reusable workflow
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/pact-provider-webhook.yml@v2.0.0
+    permissions:
+      contents: write
+      packages: write
+    with:
+      # Tweaked: Changed from subproject path to the flat root task execution
+      pact_test_task: "pactTest"
+      # Tweaked: App's matching provider name string
+      provider_name: 'laa-data-claims-certificated-api'
+      consumer_name: ${{ github.event.inputs.consumer }}
+      consumer_branch: ${{ github.event.inputs.consumerBranch }}
+      java_version: 25
+    secrets:
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
+      pact_broker_url: ${{ secrets.PACT_BROKER_URL }}
+      pact_broker_username: ${{ secrets.PACT_BROKER_USERNAME }}
+      pact_broker_password: ${{ secrets.PACT_BROKER_PASSWORD }}
