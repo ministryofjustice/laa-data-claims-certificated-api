@@ -95,7 +95,9 @@ class RateLimiterBurstIntegrationTest extends BaseIntegrationTest {
     }
 
     // Release all threads at once to simulate a genuine burst.
-    assertThat(ready.await(10, TimeUnit.SECONDS)).as("all threads reached the start latch").isTrue();
+    assertThat(ready.await(10, TimeUnit.SECONDS))
+        .as("all threads reached the start latch")
+        .isTrue();
     start.countDown();
 
     try {
