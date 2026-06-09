@@ -2,6 +2,7 @@ package uk.gov.justice.laa.data.claims.certificated.api.actuator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,7 @@ import uk.gov.justice.laa.data.claims.certificated.api.TestcontainersConfig;
       "management.endpoints.web.exposure.include=health",
       "management.server.port=0",
     })
+@DisplayName("Actuator endpoints")
 class ActuatorTest {
 
   @Value("${local.management.port}")
@@ -30,6 +32,7 @@ class ActuatorTest {
   @Autowired private TestRestTemplate restTemplate;
 
   @Test
+  @DisplayName("/actuator/health reports the application status as UP")
   void actuatorHealthEndpointShouldReturnUp() {
     ResponseEntity<String> result =
         restTemplate.getForEntity(

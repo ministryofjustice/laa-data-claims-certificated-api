@@ -4,18 +4,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 
+@DisplayName("BaseApiController")
 class BaseApiControllerTest {
 
   /** Minimal concrete subclass so the abstract base class can be instantiated for testing. */
   private final BaseApiController controller = new BaseApiController() {};
 
   @Test
+  @DisplayName("get429Response returns a 429 Too Many Requests problem detail")
   void get429ResponseReturnsTooManyRequestsProblemDetail() {
     ResponseEntity<ProblemDetail> response = controller.get429Response();
 
@@ -29,6 +32,7 @@ class BaseApiControllerTest {
   }
 
   @Test
+  @DisplayName("genericFallback delegates to get429Response")
   void genericFallbackDelegatesToGet429Response() {
     RequestNotPermitted exception =
         RequestNotPermitted.createRequestNotPermitted(
@@ -42,6 +46,7 @@ class BaseApiControllerTest {
   }
 
   @Test
+  @DisplayName("get429Response produces a ProblemDetail body for problem+json serialisation")
   void get429ResponseIsSerialisableAsProblemJson() {
     // The ProblemDetail body is rendered as application/problem+json by Spring.
     assertThat(MediaType.APPLICATION_PROBLEM_JSON).isNotNull();

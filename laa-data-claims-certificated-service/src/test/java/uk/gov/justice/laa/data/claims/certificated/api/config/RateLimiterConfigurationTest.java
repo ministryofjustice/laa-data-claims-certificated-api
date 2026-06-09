@@ -7,6 +7,7 @@ import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import io.github.resilience4j.springboot3.ratelimiter.autoconfigure.RateLimiterAutoConfiguration;
 import java.time.Duration;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
@@ -18,6 +19,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
  * {@link ConfigDataApplicationContextInitializer} together with the resilience4j
  * auto-configuration, without starting the full application context (no database required).
  */
+@DisplayName("Rate limiter configuration")
 class RateLimiterConfigurationTest {
 
   private static final List<String> ITEM_RATE_LIMITERS =
@@ -34,11 +36,13 @@ class RateLimiterConfigurationTest {
           .withConfiguration(AutoConfigurations.of(RateLimiterAutoConfiguration.class));
 
   @Test
+  @DisplayName("creates a single RateLimiterRegistry bean")
   void rateLimiterRegistryIsCreated() {
     contextRunner.run(context -> assertThat(context).hasSingleBean(RateLimiterRegistry.class));
   }
 
   @Test
+  @DisplayName("configures every item rate limiter with the expected thresholds")
   void allItemRateLimitersAreConfiguredWithExpectedThresholds() {
     contextRunner.run(
         context -> {
@@ -59,6 +63,7 @@ class RateLimiterConfigurationTest {
   }
 
   @Test
+  @DisplayName("gives each item endpoint its own rate limiter instance")
   void everyItemEndpointHasItsOwnRateLimiterInstance() {
     contextRunner.run(
         context -> {

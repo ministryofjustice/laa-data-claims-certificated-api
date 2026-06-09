@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -42,12 +43,14 @@ import uk.gov.justice.laa.data.claims.certificated.api.BaseIntegrationTest;
       "resilience4j.ratelimiter.instances.getItemsRateLimiter.timeoutDuration=0"
     })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@DisplayName("Rate limiter burst traffic")
 class RateLimiterBurstIntegrationTest extends BaseIntegrationTest {
 
   private static final int LIMIT = 3;
   private static final String ITEMS_URL = "/api/v1/items";
 
   @Test
+  @DisplayName("allows requests up to the limit then returns 429 for the next request")
   void sequentialBurstAllowsUpToLimitThenReturns429() throws Exception {
     // Requests within the limit succeed.
     for (int i = 0; i < LIMIT; i++) {
@@ -65,6 +68,7 @@ class RateLimiterBurstIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  @DisplayName("grants only the configured number of permits and rejects the rest with 429")
   void concurrentBurstGrantsOnlyLimitPermitsAndRejectsTheRestWith429() throws Exception {
     int totalRequests = 12;
     ExecutorService pool = Executors.newFixedThreadPool(totalRequests);
