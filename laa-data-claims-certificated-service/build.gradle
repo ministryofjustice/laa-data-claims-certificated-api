@@ -56,6 +56,8 @@ spotless {
 ext['tomcat.version'] = '11.0.22'
 // Upgrade to fix Allocation of Resources Without Limits or Throttling
 ext['postgresql.version'] = '42.7.11'
+// Upgrade to fix Inefficient Algorithmic Complexity in spring-expression (SNYK-JAVA-ORGSPRINGFRAMEWORK-17253311)
+ext['spring-framework.version'] = '7.0.8'
 
 dependencies {
     implementation project(':laa-data-claims-certificated-api')
