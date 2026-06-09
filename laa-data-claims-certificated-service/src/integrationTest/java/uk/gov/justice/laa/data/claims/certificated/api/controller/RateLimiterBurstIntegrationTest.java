@@ -71,42 +71,39 @@ class RateLimiterBurstIntegrationTest extends BaseIntegrationTest {
   @DisplayName("grants only the configured number of permits and rejects the rest with 429")
   void concurrentBurstGrantsOnlyLimitPermitsAndRejectsTheRestWith429() throws Exception {
     int totalRequests = 12;
-    ExecutorService pool = Executors.newFixedThreadPool(totalRequests);
     CountDownLatch ready = new CountDownLatch(totalRequests);
     CountDownLatch start = new CountDownLatch(1);
     AtomicInteger okCount = new AtomicInteger();
     AtomicInteger tooManyCount = new AtomicInteger();
 
-    List<Future<Integer>> futures = new ArrayList<>();
-    for (int i = 0; i < totalRequests; i++) {
-      Callable<Integer> task =
-          () -> {
-            ready.countDown();
-            start.await();
-            int statusCode = mockMvc.perform(get(ITEMS_URL)).andReturn().getResponse().getStatus();
-            if (statusCode == HttpStatus.OK.value()) {
-              okCount.incrementAndGet();
-            } else if (statusCode == HttpStatus.TOO_MANY_REQUESTS.value()) {
-              tooManyCount.incrementAndGet();
-            }
-            return statusCode;
-          };
-      futures.add(pool.submit(task));
-    }
+    try (ExecutorService pool = Executors.newVirtualThreadPerTaskExecutor()) {
+      List<Future<Integer>> futures = new ArrayList<>();
+      for (int i = 0; i < totalRequests; i++) {
+        Callable<Integer> task =
+            () -> {
+              ready.countDown();
+              start.await();
+              int statusCode =
+                  mockMvc.perform(get(ITEMS_URL)).andReturn().getResponse().getStatus();
+              if (statusCode == HttpStatus.OK.value()) {
+                okCount.incrementAndGet();
+              } else if (statusCode == HttpStatus.TOO_MANY_REQUESTS.value()) {
+                tooManyCount.incrementAndGet();
+              }
+              return statusCode;
+            };
+        futures.add(pool.submit(task));
+      }
 
-    // Release all threads at once to simulate a genuine burst.
-    assertThat(ready.await(10, TimeUnit.SECONDS))
-        .as("all threads reached the start latch")
-        .isTrue();
-    start.countDown();
+      // Release all threads at once to simulate a genuine burst.
+      assertThat(ready.await(10, TimeUnit.SECONDS))
+          .as("all threads reached the start latch")
+          .isTrue();
+      start.countDown();
 
-    try {
       for (Future<Integer> future : futures) {
         future.get();
       }
-    } finally {
-      pool.shutdownNow();
-      assertThat(pool.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
     }
 
     assertThat(okCount.get()).as("permitted requests").isEqualTo(LIMIT);
