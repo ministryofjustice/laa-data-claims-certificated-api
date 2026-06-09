@@ -47,9 +47,13 @@ class BaseApiControllerTest {
 
   @Test
   @DisplayName("get429Response produces a ProblemDetail body for problem+json serialisation")
+  @Test
+  @DisplayName("get429Response produces an application/problem+json response")
   void get429ResponseIsSerialisableAsProblemJson() {
-    // The ProblemDetail body is rendered as application/problem+json by Spring.
-    assertThat(MediaType.APPLICATION_PROBLEM_JSON).isNotNull();
-    assertThat(controller.get429Response().getBody()).isInstanceOf(ProblemDetail.class);
+    ResponseEntity<ProblemDetail> response = controller.get429Response();
+
+    assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_PROBLEM_JSON);
+    assertThat(response.getBody()).isInstanceOf(ProblemDetail.class);
+  }
   }
 }

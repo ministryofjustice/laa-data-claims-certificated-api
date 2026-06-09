@@ -95,14 +95,17 @@ class RateLimiterBurstIntegrationTest extends BaseIntegrationTest {
     }
 
     // Release all threads at once to simulate a genuine burst.
-    ready.await();
+    assertThat(ready.await(10, TimeUnit.SECONDS)).as("all threads reached the start latch").isTrue();
     start.countDown();
 
-    for (Future<Integer> future : futures) {
-      future.get();
+    try {
+      for (Future<Integer> future : futures) {
+        future.get();
+      }
+    } finally {
+      pool.shutdownNow();
+      assertThat(pool.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
     }
-    pool.shutdown();
-    assertThat(pool.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
 
     assertThat(okCount.get()).as("permitted requests").isEqualTo(LIMIT);
     assertThat(tooManyCount.get()).as("rejected requests").isEqualTo(totalRequests - LIMIT);

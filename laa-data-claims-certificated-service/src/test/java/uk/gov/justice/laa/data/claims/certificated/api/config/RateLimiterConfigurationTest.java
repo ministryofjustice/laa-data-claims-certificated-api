@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import uk.gov.justice.laa.data.claims.certificated.api.constants.RateLimiterNames;
 
 /**
  * Unit test verifying that the resilience4j rate limiter instances declared in {@code
@@ -24,11 +25,11 @@ class RateLimiterConfigurationTest {
 
   private static final List<String> ITEM_RATE_LIMITERS =
       List.of(
-          "getItemsRateLimiter",
-          "getItemRateLimiter",
-          "createItemRateLimiter",
-          "updateItemRateLimiter",
-          "deleteItemRateLimiter");
+          RateLimiterNames.GET_ITEMS,
+          RateLimiterNames.GET_ITEM,
+          RateLimiterNames.CREATE_ITEM,
+          RateLimiterNames.UPDATE_ITEM,
+          RateLimiterNames.DELETE_ITEM);
 
   private final ApplicationContextRunner contextRunner =
       new ApplicationContextRunner()
