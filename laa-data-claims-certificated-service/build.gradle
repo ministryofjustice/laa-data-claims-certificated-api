@@ -56,6 +56,14 @@ spotless {
 ext['tomcat.version'] = '11.0.22'
 // Upgrade to fix Allocation of Resources Without Limits or Throttling
 ext['postgresql.version'] = '42.7.11'
+// Upgrade to fix CVE-2026-41851 (spring-core), CVE-2026-41850 (spring-expression),
+// CVE-2026-41840 (spring-web), CVE-2026-41843/41841/41842 (spring-webmvc)
+ext['spring-framework.version'] = '7.0.8'
+// Upgrade to fix CVE-2026-40984 (Allocation of Resources Without Limits or Throttling)
+ext['micrometer.version'] = '1.16.6'
+// Upgrade to fix Denial of Service (DoS) in spring-data-commons (SNYK-JAVA-ORGSPRINGFRAMEWORKDATA-17279540);
+// bumps the Spring Data release-train BOM (2025.1.5 -> 2025.1.6), which ships spring-data-commons 4.0.6
+ext['spring-data-bom.version'] = '2025.1.6'
 
 dependencies {
     implementation project(':laa-data-claims-certificated-api')
