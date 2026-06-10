@@ -14,9 +14,6 @@ inputs:
   kube-namespace:
     description: "Kubernetes cluster namespace"
     required: true
-  app-environment:
-    description: "Target environment (uat)"
-    required: true
   pr-number:
     description: "Pull request number for the PR being closed"
     required: true
