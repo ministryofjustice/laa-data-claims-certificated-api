@@ -10,7 +10,7 @@ on:
 jobs:
   pact-test:
     # Keeps using the shared Ministry of Justice reusable workflow
-    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/pact-provider-webhook.yml@v2.0.0
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/pact-provider-webhook.yml@v2.2.1
     permissions:
       contents: write
       packages: write
