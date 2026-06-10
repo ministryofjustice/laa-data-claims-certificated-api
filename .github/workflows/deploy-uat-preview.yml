@@ -141,7 +141,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/cp-deploy.yml@main
+    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/cp-deploy.yml@8e0e6bbaa7d9075660c044b2e2c934a966c56570 # main as of 2026-06-03
     with:
       environment: uat
       image_tag: ${{ needs.ecr-publish-image.outputs.published_image_version }}

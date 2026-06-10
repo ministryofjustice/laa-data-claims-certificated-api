@@ -30,7 +30,7 @@ on:
 
 jobs:
   deploy:
-    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/cp-deploy.yml@main
+    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/cp-deploy.yml@8e0e6bbaa7d9075660c044b2e2c934a966c56570 # main as of 2026-06-03
     with:
       environment: ${{ inputs.environment }}
       image_registry: ${{ inputs.image_registry }}
