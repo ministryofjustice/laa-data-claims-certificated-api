@@ -269,12 +269,6 @@ available in a future `laa-spring-boot-common` release.
 
 | Dependency                                  | Overridden Version | Reason                                                                                                                                    | Date Added |
 |---------------------------------------------|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------|------------|
-| `com.fasterxml.jackson.core:jackson-core`   | `2.21.2`           | Fixes Snyk issue - [SNYK-JAVA-COMFASTERXMLJACKSONCORE-15907551](https://security.snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-15907551) | 2026-04-30 |
-| `org.apache.tomcat.embed:tomcat-embed-core` | `11.0.22`          | Fixes Snyk issues - [SNYK-JAVA-ORGAPACHETOMCATEMBED-15989820](https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHETOMCATEMBED-15989820), [SNYK-JAVA-ORGAPACHETOMCATEMBED-16643259](https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHETOMCATEMBED-16643259), [SNYK-JAVA-ORGAPACHETOMCATEMBED-16691231](https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHETOMCATEMBED-16691231) | 2026-04-30 |
-| `tools.jackson.core:jackson-core`           | `3.1.1`            | Fixes Snyk issue - [SNYK-JAVA-TOOLSJACKSONCORE-15907550](https://security.snyk.io/vuln/SNYK-JAVA-TOOLSJACKSONCORE-15907550)               | 2026-04-30 |
-| `org.postgresql:postgresql`                 | `42.7.11`          | Fixes Snyk issue - [SNYK-JAVA-ORGPOSTGRESQL-16321668](https://security.snyk.io/vuln/SNYK-JAVA-ORGPOSTGRESQL-16321668)                     | 2026-05-21 |
-| `org.springframework:spring-framework`      | `7.0.8`            | Fixes Snyk issue (Inefficient Algorithmic Complexity in `spring-expression`) - [SNYK-JAVA-ORGSPRINGFRAMEWORK-17253311](https://security.snyk.io/vuln/SNYK-JAVA-ORGSPRINGFRAMEWORK-17253311) | 2026-06-09 |
-| `io.micrometer:micrometer-core`             | `1.16.6`           | Fixes Snyk issue (Allocation of Resources Without Limits or Throttling) - [SNYK-JAVA-IOMICROMETER-17260885](https://security.snyk.io/vuln/SNYK-JAVA-IOMICROMETER-17260885) | 2026-06-10 |
 
 ### Run Pact contract tests
 
