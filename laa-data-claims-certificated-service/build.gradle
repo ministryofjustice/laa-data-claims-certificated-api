@@ -14,6 +14,12 @@ processResources {
     }
 }
 
+// Produce a stable, version-independent boot jar name so the Dockerfile COPY
+// does not need to track the project version (e.g. across -SNAPSHOT / release bumps).
+bootJar {
+    archiveFileName = 'laa-data-claims-certificated-service.jar'
+}
+
 test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
