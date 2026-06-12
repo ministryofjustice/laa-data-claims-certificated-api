@@ -47,6 +47,30 @@ The *.sql scripts in  `src/main/resources` have been included to provide an exam
 ### Run application via Docker
 `docker compose up`
 
+#### Local database configuration (docker-compose)
+
+The local PostgreSQL container's database settings are defined as inline defaults
+in `docker-compose.yml`. The app only needs `DB_HOST` overridden (to reach the DB
+at the `postgres` service name instead of `localhost`); its other DB settings come
+from the matching defaults in `application.yml`, so nothing is duplicated.
+
+| Variable      | Default                            | Purpose                                             |
+|---------------|------------------------------------|-----------------------------------------------------|
+| `DB_NAME`     | `data-claims-certificated-api_dev` | Database name (postgres container)                  |
+| `DB_USERNAME` | `user`                             | Database user (postgres container)                  |
+| `DB_PASSWORD` | `dev`                              | Database password (postgres container)              |
+| `DB_HOST`     | `postgres`                         | Host the app uses to reach the DB on the compose network |
+| `DB_PORT`     | `5432`                             | Host port mapped to the postgres container          |
+
+These are **non-secret local-only defaults**. Deployed environments do not use
+them — they inject `DB_*` from the `rds-postgresql-instance-output` Kubernetes
+secret instead (see `.helm/.../values/*.yaml`). To override a value locally,
+export it before running `docker compose up`, e.g.:
+
+```bash
+DB_PORT=5544 docker compose up
+```
+
 ### Debug application running via Docker
 
 #### Configuration

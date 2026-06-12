@@ -53,13 +53,17 @@ spotless {
 // **** When adding new overrides please check if any existing overrides are now redundant (by removing them and adding them back only if required)
 
 // Upgrade to fix Allocation of Resources Without Limits or Throttling and Improper Authentication
-ext['tomcat.version'] = '11.0.22'
+//ext['tomcat.version'] = '11.0.22'
 // Upgrade to fix Allocation of Resources Without Limits or Throttling
-ext['postgresql.version'] = '42.7.11'
+//ext['postgresql.version'] = '42.7.11'
 // Upgrade to fix Inefficient Algorithmic Complexity in spring-expression (SNYK-JAVA-ORGSPRINGFRAMEWORK-17253311)
-ext['spring-framework.version'] = '7.0.8'
+//ext['spring-framework.version'] = '7.0.8'
 // Upgrade to fix Allocation of Resources Without Limits or Throttling (SNYK-JAVA-IOMICROMETER-17260885)
-ext['micrometer.version'] = '1.16.6'
+//ext['micrometer.version'] = '1.16.6'
+// Upgrade to fix Denial of Service (DoS) in spring-data-commons (SNYK-JAVA-ORGSPRINGFRAMEWORKDATA-17279540);
+// bumps the Spring Data release-train BOM (2025.1.5 -> 2025.1.6), which ships spring-data-commons 4.0.6
+//ext['spring-data-bom.version'] = '2025.1.6'
+
 
 dependencies {
     implementation project(':laa-data-claims-certificated-api')

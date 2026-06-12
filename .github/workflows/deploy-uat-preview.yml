@@ -1,0 +1,213 @@
+name: Deploy UAT preview
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  JAVA_VERSION: &JAVA_VERSION '25'
+  JDK_DISTRIBUTION: &JDK_DISTRIBUTION 'corretto'
+
+jobs:
+  build:
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@dc4173bfc12f714d7e8cbdd9f524d00ef02e25c4 # v2
+    permissions:
+      contents: write
+      packages: write
+    with:
+      java_version: *JAVA_VERSION
+      java_distribution: *JDK_DISTRIBUTION
+      integration_test_task: "integrationTest"
+      publish_package: 'false'
+      semgrep_check: 'true'
+      junit_results_path: 'laa-data-claims-certificated-service/build/test-results'
+      junit_report_path: 'laa-data-claims-certificated-service/build/reports/tests'
+      checkstyle_report_path: 'laa-data-claims-certificated-service/build/reports/checkstyle'
+      jacoco_coverage_report_path: 'laa-data-claims-certificated-service/build/reports/jacoco'
+    secrets:
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
+
+  sca-scan:
+    needs: [ build ]
+    uses: ./.github/workflows/sca-analysis.yml
+    permissions:
+      contents: read
+      security-events: write
+    with:
+      java_version: *JAVA_VERSION
+      java_distribution: *JDK_DISTRIBUTION
+    secrets:
+      snyk_client_id: ${{ secrets.SNYK_CLIENT_ID }}
+      snyk_client_secret: ${{ secrets.SNYK_CLIENT_SECRET }}
+
+  ecr-publish-image:
+    needs: [ build ]
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/ecr-publish-image.yml@dc4173bfc12f714d7e8cbdd9f524d00ef02e25c4 # v2
+    permissions:
+      contents: read
+      id-token: write
+      security-events: write
+    with:
+      java_version: *JAVA_VERSION
+      java_distribution: *JDK_DISTRIBUTION
+      jar_subproject: 'laa-data-claims-certificated-service'
+      image_version: ${{ github.sha }}
+      # Docker image scan is handled by sca-analysis.yml using short-lived SNYK_CLIENT_ID/SECRET
+      # tokens — disabling here to avoid duplicate scans and the need for a static SNYK_TOKEN.
+      image_scan: 'false'
+    secrets:
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
+      ecr_repository: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
+      ecr_region: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REGION }}
+      ecr_role_to_assume: ${{ secrets.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_ROLE_TO_ASSUME }}
+      snyk_token: ""
+
+
+  create-preview-db:
+    runs-on: ubuntu-latest
+    needs:
+      - ecr-publish-image
+      - sca-scan
+    environment: uat
+    permissions:
+      id-token: write
+      contents: read
+
+    outputs:
+      release-name: ${{ steps.get_release_name.outputs.release-name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Get release name
+        id: get_release_name
+        uses: ./.github/actions/get_release_name
+        with:
+          pr-number: ${{ github.event.pull_request.number }}
+
+      - name: Authenticate to the cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@2aa2676c3cd9876ec7037ee8b3d729d0306cb7c6 # unversioned
+        with:
+          kube-cert: ${{ secrets.KUBE_CERT }}
+          kube-token: ${{ secrets.KUBE_TOKEN }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE }}
+
+
+      - name: Create preview database
+        if: ${{ github.event.pull_request.number != '' }}
+        shell: bash
+        env:
+          RELEASE_NAME: ${{ steps.get_release_name.outputs.release-name }}
+        run: |
+          echo "Creating database: $RELEASE_NAME"
+          scripts/uat_create_db.sh "$RELEASE_NAME"
+
+  # Obtain the ECR registry host for the Helm deploy. The shared ecr-publish-image
+  # workflow logs into ECR but does not output the registry, and a reusable-workflow
+  # "uses:" job can't read secrets.* in its `with:` (nor can a secret be piped through
+  # a job output — masking blanks it). So we log in here and expose the non-secret
+  # registry value as a job output.
+  get-ecr-registry:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+      registry: ${{ steps.login-ecr.outputs.registry }}
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.0.1
+        with:
+          aws-region: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REGION }}
+          role-to-assume: ${{ secrets.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_ROLE_TO_ASSUME }}
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+
+  # The deploy MUST go through cp-deploy.yml: the octo-sts trust policy for
+  # laa-generic-helm-chart only accepts tokens whose job_workflow_ref matches
+  # cp-deploy.yml. Per-PR hostname + set-identifier are passed via helm_additional_args.
+  deploy-uat-preview:
+    needs:
+      - create-preview-db
+      - ecr-publish-image
+      - get-ecr-registry
+    permissions:
+      id-token: write
+      contents: read
+    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/cp-deploy.yml@8e0e6bbaa7d9075660c044b2e2c934a966c56570 # main as of 2026-06-03
+    with:
+      environment: uat
+      image_tag: ${{ needs.ecr-publish-image.outputs.published_image_version }}
+      image_registry: ${{ needs.get-ecr-registry.outputs.registry }}
+      image_repo: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
+      helm_release_name: ${{ needs.create-preview-db.outputs.release-name }}
+      helm_chart: ./laa-generic-helm-chart
+      helm_values_path: .helm/laa-data-claims-certificated-api/values/uat.yaml
+      # Preview overrides (release name is e.g. pr-9):
+      #  - nameOverride is intentionally NOT overridden: keeping it as
+      #    data-claims-certificated-api makes the chart's fullname helper produce
+      #    <release>-data-claims-certificated-api (e.g. pr-9-data-claims-certificated-api),
+      #    so the deployment, service, pods and ingress all carry the release prefix.
+      #  - DB_NAME points at the per-PR database instead of the shared UAT database.
+      #    We replace the whole containerEnvironment.secrets list (dropping the
+      #    secret-sourced DB_NAME) and supply DB_NAME as a variable, so the pod gets a
+      #    single DB_NAME env var. Host/user/password stay secret-sourced (same RDS
+      #    instance). --set-json replaces the array cleanly.
+      #  - ingress hostnames + set-identifiers are made per-release so each PR gets its
+      #    own DNS records. uat.yaml defines two ingresses: green (internal, in-cluster)
+      #    and blue (public/modsec, laptop-reachable). We override both hosts per PR; the
+      #    PR comment links the blue (public) host so reviewers can browse it.
+      #  - Swagger UI / API docs are enabled for UAT (including previews) via uat.yaml,
+      #    so the root-less REST API has a browsable landing page for reviewers.
+      helm_additional_args: >-
+        --set containerEnvironment.variables.DB_NAME=${{ needs.create-preview-db.outputs.release-name }}
+        --set-json 'containerEnvironment.secrets=[{"name":"DB_HOST","secretName":"rds-postgresql-instance-output","key":"rds_instance_address"},{"name":"DB_USERNAME","secretName":"rds-postgresql-instance-output","key":"database_username"},{"name":"DB_PASSWORD","secretName":"rds-postgresql-instance-output","key":"database_password"}]'
+        --set ingress.green.hostname=${{ needs.create-preview-db.outputs.release-name }}-laa-data-claims-certificated-api-uat.internal-non-prod.cloud-platform.service.justice.gov.uk
+        --set "ingress.green.annotations.external-dns\.alpha\.kubernetes\.io/set-identifier=${{ needs.create-preview-db.outputs.release-name }}-data-claims-certificated-api-green-laa-data-claims-certificated-api-uat-green"
+        --set ingress.blue.hostname=${{ needs.create-preview-db.outputs.release-name }}-laa-data-claims-certificated-api-uat.cloud-platform.service.justice.gov.uk
+        --set "ingress.blue.annotations.external-dns\.alpha\.kubernetes\.io/set-identifier=${{ needs.create-preview-db.outputs.release-name }}-data-claims-certificated-api-blue-laa-data-claims-certificated-api-uat-green"
+      k8s_service_account: laa-data-claims-certificated-api-uat-service-account
+    secrets: inherit
+
+  # Post the ephemeral preview URL back to the PR as a comment so reviewers can
+  # click straight through. The URL is derived solely from the PR number, so it is
+  # stable for the life of the PR — we post it once (guarded by a hidden marker) and
+  # leave it alone on subsequent pushes rather than re-commenting.
+  comment-preview-url:
+    needs:
+      - create-preview-db
+      - deploy-uat-preview
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Post preview URL comment (once)
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          RELEASE_NAME: ${{ needs.create-preview-db.outputs.release-name }}
+        with:
+          script: |
+            const marker = '<!-- uat-preview-url -->';
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number,
+            });
+            if (comments.some((c) => c.body && c.body.includes(marker))) {
+              core.info('Preview URL comment already exists — nothing to do.');
+              return;
+            }
+            const host = `${process.env.RELEASE_NAME}-laa-data-claims-certificated-api-uat.cloud-platform.service.justice.gov.uk`;
+            const body = `${marker}\n### 🚀 UAT preview deployed\n\n`
+              + `**Swagger UI:** https://${host}/swagger-ui/index.html\n`
+              + `**OpenAPI docs:** https://${host}/v3/api-docs\n`;
+            await github.rest.issues.createComment({ owner, repo, issue_number, body });
+
+
