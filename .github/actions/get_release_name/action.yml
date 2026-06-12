@@ -1,0 +1,35 @@
+name: "Get release name"
+description: 'Derive a Helm release name from a PR number, or "main" if no PR number is provided'
+
+inputs:
+  pr-number:
+    description: "Pull request number, if applicable"
+    required: false
+
+outputs:
+  branch-name:
+    description: "Either the literal branch name or 'non-main' for PRs"
+    value: ${{ steps.get_release_and_branch.outputs.branch-name }}
+  release-name:
+    description: "Helm release name: pr-<number> for PRs, or 'main'"
+    value: ${{ steps.get_release_and_branch.outputs.release-name }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get release name and branch name
+      id: get_release_and_branch
+      shell: bash
+      env:
+        PR_NUMBER: ${{ inputs.pr-number }}
+      run: |
+        if [ -n "$PR_NUMBER" ]; then
+          echo "release-name=pr-$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "branch-name=non-main" >> $GITHUB_OUTPUT
+          echo "PR number provided: $PR_NUMBER. Setting release-name to pr-$PR_NUMBER and branch-name to non-main."
+        else
+          echo "release-name=main" >> $GITHUB_OUTPUT
+          echo "branch-name=main" >> $GITHUB_OUTPUT
+          echo "No PR number provided. Setting release-name and branch-name to main."
+        fi
+

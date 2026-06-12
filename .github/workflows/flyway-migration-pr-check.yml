@@ -1,0 +1,76 @@
+name: Flyway Migration Check
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, labeled, unlabeled ]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  check-flyway-migrations:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Check for Flyway migration files
+        id: check-flyway
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Use the merge-base so a rebased/force-pushed PR still produces an
+          # accurate file list (avoids false negatives in this merge guard).
+          MERGE_BASE=$(git merge-base "$BASE_SHA" "$HEAD_SHA")
+          CHANGED_FILES=$(git diff --name-only "$MERGE_BASE" "$HEAD_SHA")
+          echo "$CHANGED_FILES" | grep -qE "resources/db/.*/.*\.sql$" && echo "flyway_found=true" >> "$GITHUB_ENV" || echo "flyway_found=false" >> "$GITHUB_ENV"
+
+      - name: Create or update PR comment
+        if: env.flyway_found == 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const marker = "<!-- flyway-migration-check -->";
+
+            const commentBody = `${marker}
+            🚨 **This PR appears to contain Flyway migration scripts**
+
+            Please assess their impact before merging:
+
+            1. Ensure the migration version is recorded in the Confluence page [Flyway Migration History](https://dsdmoj.atlassian.net/wiki/spaces/WHCZA/pages/5866160240/Flyway+migration+history)
+            2. Check if the migration includes changes to tables that are replicated or require replication
+            3. Assess whether the changes will impact or break replication — if unsure, discuss with the Data Stewardship Developers
+            4. Once reviewed and confident the migration won't break anything (or you have a remedial plan), add the label \`flyway-migration-reviewed\` to this PR to allow merging.
+            `;
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+
+            const comments = await github.rest.issues.listComments({ owner, repo, issue_number });
+            const existingComment = comments.data.find(c => c.body.includes(marker));
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existingComment.id, body: commentBody });
+              console.log("Updated existing Flyway comment.");
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body: commentBody });
+              console.log("Created new Flyway comment.");
+            }
+
+      - name: Require label override for migrations
+        if: env.flyway_found == 'true'
+        env:
+          LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: |
+          if echo "$LABELS" | grep -q "flyway-migration-reviewed"; then
+            echo "Override label 'flyway-migration-reviewed' is present. Check passes."
+          else
+            echo "❌ Flyway migrations found. Review them and add the 'flyway-migration-reviewed' label to this PR to override this check."
+            exit 1
+          fi
+

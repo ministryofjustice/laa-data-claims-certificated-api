@@ -9,26 +9,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.justice.laa.data.claims.certificated.api.DataClaimsCertificatedApiApplication;
-import uk.gov.justice.laa.data.claims.certificated.api.TestcontainersConfig;
+import uk.gov.justice.laa.data.claims.certificated.api.BaseIntegrationTest;
 
-@Import(TestcontainersConfig.class)
-@SpringBootTest(classes = DataClaimsCertificatedApiApplication.class)
-@AutoConfigureMockMvc
 @Transactional
-class ItemControllerIntegrationTest {
-
-  @Autowired private MockMvc mockMvc;
+@DisplayName("Item API integration")
+class ItemControllerIntegrationTest extends BaseIntegrationTest {
 
   @Test
+  @DisplayName("GET /api/v1/items returns all seeded items")
   void shouldGetAllItems() throws Exception {
     mockMvc
         .perform(get("/api/v1/items"))
@@ -38,6 +30,7 @@ class ItemControllerIntegrationTest {
   }
 
   @Test
+  @DisplayName("GET /api/v1/items/{id} returns the requested item")
   void shouldGetItem() throws Exception {
     mockMvc
         .perform(get("/api/v1/items/1"))
@@ -49,6 +42,7 @@ class ItemControllerIntegrationTest {
   }
 
   @Test
+  @DisplayName("POST /api/v1/items creates a new item")
   void shouldCreateItem() throws Exception {
     mockMvc
         .perform(
@@ -61,6 +55,7 @@ class ItemControllerIntegrationTest {
   }
 
   @Test
+  @DisplayName("PUT /api/v1/items/{id} updates an existing item")
   void shouldUpdateItem() throws Exception {
     mockMvc
         .perform(
@@ -73,6 +68,7 @@ class ItemControllerIntegrationTest {
   }
 
   @Test
+  @DisplayName("DELETE /api/v1/items/{id} removes an item")
   void shouldDeleteItem() throws Exception {
     mockMvc.perform(delete("/api/v1/items/3")).andExpect(status().isNoContent());
   }

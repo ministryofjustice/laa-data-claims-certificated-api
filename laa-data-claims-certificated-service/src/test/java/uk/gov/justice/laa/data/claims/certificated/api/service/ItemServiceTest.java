@@ -9,6 +9,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,6 +24,7 @@ import uk.gov.justice.laa.data.claims.certificated.api.model.ItemRequestBody;
 import uk.gov.justice.laa.data.claims.certificated.api.repository.ItemRepository;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("ItemService")
 class ItemServiceTest {
 
   @Mock private ItemRepository mockItemRepository;
@@ -30,108 +33,141 @@ class ItemServiceTest {
 
   @InjectMocks private ItemService itemService;
 
-  @Test
-  void shouldGetAllItems() {
-    ItemEntity firstItemEntity = new ItemEntity(1L, "Item One", "This is Item One.");
-    ItemEntity secondItemEntity = new ItemEntity(2L, "Item Two", "This is Item Two.");
-    Item firstItem =
-        Item.builder().id(1L).name("Item One").description("This is Item One.").build();
-    Item secondItem =
-        Item.builder().id(2L).name("Item Two").description("This is Item Two.").build();
-    when(mockItemRepository.findAll()).thenReturn(List.of(firstItemEntity, secondItemEntity));
-    when(mockItemMapper.toItem(firstItemEntity)).thenReturn(firstItem);
-    when(mockItemMapper.toItem(secondItemEntity)).thenReturn(secondItem);
+  @Nested
+  @DisplayName("Get all items")
+  class GetAllItems {
 
-    List<Item> result = itemService.getAllItems();
+    @Test
+    @DisplayName("returns all mapped items")
+    void shouldGetAllItems() {
+      ItemEntity firstItemEntity = new ItemEntity(1L, "Item One", "This is Item One.");
+      ItemEntity secondItemEntity = new ItemEntity(2L, "Item Two", "This is Item Two.");
+      Item firstItem =
+          Item.builder().id(1L).name("Item One").description("This is Item One.").build();
+      Item secondItem =
+          Item.builder().id(2L).name("Item Two").description("This is Item Two.").build();
+      when(mockItemRepository.findAll()).thenReturn(List.of(firstItemEntity, secondItemEntity));
+      when(mockItemMapper.toItem(firstItemEntity)).thenReturn(firstItem);
+      when(mockItemMapper.toItem(secondItemEntity)).thenReturn(secondItem);
 
-    assertThat(result).hasSize(2).contains(firstItem, secondItem);
+      List<Item> result = itemService.getAllItems();
+
+      assertThat(result).hasSize(2).contains(firstItem, secondItem);
+    }
   }
 
-  @Test
-  void shouldGetItemById() {
-    Long id = 1L;
-    String name = "Item One";
-    String description = "This is Item One.";
-    ItemEntity itemEntity = new ItemEntity(id, name, description);
-    Item item = Item.builder().id(id).name(name).description(description).build();
-    when(mockItemRepository.findById(id)).thenReturn(Optional.of(itemEntity));
-    when(mockItemMapper.toItem(itemEntity)).thenReturn(item);
+  @Nested
+  @DisplayName("Get item by id")
+  class GetItemById {
 
-    Item result = itemService.getItem(id);
+    @Test
+    @DisplayName("returns the mapped item when it exists")
+    void shouldGetItemById() {
+      Long id = 1L;
+      String name = "Item One";
+      String description = "This is Item One.";
+      ItemEntity itemEntity = new ItemEntity(id, name, description);
+      Item item = Item.builder().id(id).name(name).description(description).build();
+      when(mockItemRepository.findById(id)).thenReturn(Optional.of(itemEntity));
+      when(mockItemMapper.toItem(itemEntity)).thenReturn(item);
 
-    assertThat(result).isNotNull();
-    assertThat(result.getId()).isEqualTo(id);
-    assertThat(result.getName()).isEqualTo(name);
+      Item result = itemService.getItem(id);
+
+      assertThat(result).isNotNull();
+      assertThat(result.getId()).isEqualTo(id);
+      assertThat(result.getName()).isEqualTo(name);
+    }
+
+    @Test
+    @DisplayName("throws ItemNotFoundException when the item does not exist")
+    void shouldThrowWhenItemNotFound() {
+      Long id = 5L;
+      when(mockItemRepository.findById(id)).thenReturn(Optional.empty());
+
+      assertThrows(ItemNotFoundException.class, () -> itemService.getItem(id));
+
+      verify(mockItemMapper, never()).toItem(any(ItemEntity.class));
+    }
   }
 
-  @Test
-  void shouldNotGetItemById_whenItemNotFoundThenThrowsException() {
-    Long id = 5L;
-    when(mockItemRepository.findById(id)).thenReturn(Optional.empty());
+  @Nested
+  @DisplayName("Create item")
+  class CreateItem {
 
-    assertThrows(ItemNotFoundException.class, () -> itemService.getItem(id));
+    @Test
+    @DisplayName("persists the item and returns its generated id")
+    void shouldCreateItem() {
+      ItemRequestBody itemRequestBody =
+          ItemRequestBody.builder().name("Item Three").description("This is Item Three.").build();
+      ItemEntity itemEntity = new ItemEntity(3L, "Item Three", "This is Item Three.");
+      when(mockItemRepository.save(new ItemEntity(null, "Item Three", "This is Item Three.")))
+          .thenReturn(itemEntity);
 
-    verify(mockItemMapper, never()).toItem(any(ItemEntity.class));
+      Long result = itemService.createItem(itemRequestBody);
+
+      assertThat(result).isNotNull().isEqualTo(3L);
+    }
   }
 
-  @Test
-  void shouldCreateItem() {
-    ItemRequestBody itemRequestBody =
-        ItemRequestBody.builder().name("Item Three").description("This is Item Three.").build();
-    ItemEntity itemEntity = new ItemEntity(3L, "Item Three", "This is Item Three.");
-    when(mockItemRepository.save(new ItemEntity(null, "Item Three", "This is Item Three.")))
-        .thenReturn(itemEntity);
+  @Nested
+  @DisplayName("Update item")
+  class UpdateItem {
 
-    Long result = itemService.createItem(itemRequestBody);
+    @Test
+    @DisplayName("saves the updated item when it exists")
+    void shouldUpdateItem() {
+      Long id = 1L;
+      String name = "Item One";
+      String description = "This is Item One.";
+      ItemRequestBody itemRequestBody =
+          ItemRequestBody.builder().name(name).description(description).build();
+      ItemEntity itemEntity = new ItemEntity(id, name, description);
+      when(mockItemRepository.findById(id)).thenReturn(Optional.of(itemEntity));
 
-    assertThat(result).isNotNull().isEqualTo(3L);
+      itemService.updateItem(id, itemRequestBody);
+
+      verify(mockItemRepository).save(itemEntity);
+    }
+
+    @Test
+    @DisplayName("throws ItemNotFoundException when the item does not exist")
+    void shouldThrowWhenItemNotFound() {
+      Long id = 5L;
+      ItemRequestBody itemRequestBody =
+          ItemRequestBody.builder().name("Item Five").description("This is Item Five.").build();
+      when(mockItemRepository.findById(id)).thenReturn(Optional.empty());
+
+      assertThrows(ItemNotFoundException.class, () -> itemService.updateItem(id, itemRequestBody));
+
+      verify(mockItemRepository, never()).save(any(ItemEntity.class));
+    }
   }
 
-  @Test
-  void shouldUpdateItem() {
-    Long id = 1L;
-    String name = "Item One";
-    String description = "This is Item One.";
-    ItemRequestBody itemRequestBody =
-        ItemRequestBody.builder().name(name).description(description).build();
-    ItemEntity itemEntity = new ItemEntity(id, name, description);
-    when(mockItemRepository.findById(id)).thenReturn(Optional.of(itemEntity));
+  @Nested
+  @DisplayName("Delete item")
+  class DeleteItem {
 
-    itemService.updateItem(id, itemRequestBody);
+    @Test
+    @DisplayName("deletes the item when it exists")
+    void shouldDeleteItem() {
+      Long id = 1L;
+      ItemEntity itemEntity = new ItemEntity(id, "Item One", "This is Item One.");
+      when(mockItemRepository.findById(id)).thenReturn(Optional.of(itemEntity));
 
-    verify(mockItemRepository).save(itemEntity);
-  }
+      itemService.deleteItem(id);
 
-  @Test
-  void shouldNotUpdateItem_whenItemNotFoundThenThrowsException() {
-    Long id = 5L;
-    ItemRequestBody itemRequestBody =
-        ItemRequestBody.builder().name("Item Five").description("This is Item Five.").build();
-    when(mockItemRepository.findById(id)).thenReturn(Optional.empty());
+      verify(mockItemRepository).deleteById(id);
+    }
 
-    assertThrows(ItemNotFoundException.class, () -> itemService.updateItem(id, itemRequestBody));
+    @Test
+    @DisplayName("throws ItemNotFoundException when the item does not exist")
+    void shouldThrowWhenItemNotFound() {
+      Long id = 5L;
+      when(mockItemRepository.findById(id)).thenReturn(Optional.empty());
 
-    verify(mockItemRepository, never()).save(any(ItemEntity.class));
-  }
+      assertThrows(ItemNotFoundException.class, () -> itemService.deleteItem(id));
 
-  @Test
-  void shouldDeleteItem() {
-    Long id = 1L;
-    ItemEntity itemEntity = new ItemEntity(id, "Item One", "This is Item One.");
-    when(mockItemRepository.findById(id)).thenReturn(Optional.of(itemEntity));
-
-    itemService.deleteItem(id);
-
-    verify(mockItemRepository).deleteById(id);
-  }
-
-  @Test
-  void shouldNotDeleteItem_whenItemNotFoundThenThrowsException() {
-    Long id = 5L;
-    when(mockItemRepository.findById(id)).thenReturn(Optional.empty());
-
-    assertThrows(ItemNotFoundException.class, () -> itemService.deleteItem(id));
-
-    verify(mockItemRepository, never()).deleteById(id);
+      verify(mockItemRepository, never()).deleteById(id);
+    }
   }
 }

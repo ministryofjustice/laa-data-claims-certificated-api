@@ -14,6 +14,7 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpRequest;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,6 +28,7 @@ import uk.gov.justice.laa.data.claims.certificated.api.entity.ItemEntity;
 @Provider(value = "laa-data-claims-certificated-api")
 // @PactBroker // <-- uncomment this and remove the @PactFolder
 @PactFolder("src/pactTest/resources/pacts")
+@DisplayName("Item provider Pact verification")
 public class ItemProviderPactTest extends AbstractProviderPactTests {
 
   @LocalServerPort private int port;
@@ -44,6 +46,7 @@ public class ItemProviderPactTest extends AbstractProviderPactTests {
 
   @TestTemplate
   @ExtendWith(PactVerificationInvocationContextProvider.class)
+  @DisplayName("verifies provider interactions against the consumer contract")
   void pactVerificationTestTemplate(PactVerificationContext context) {
     // context.verifyInteraction(); - uncomment when using PactBroker
   }
