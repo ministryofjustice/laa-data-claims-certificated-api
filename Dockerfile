@@ -1,12 +1,12 @@
 # Specify java runtime base image
-FROM amazoncorretto:25-alpine
+FROM amazoncorretto:25-alpine AS base
 
 # Set up working directory in the container
 RUN mkdir -p /opt/laa-data-claims-certificated-api/
 WORKDIR /opt/laa-data-claims-certificated-api/
 
 # Copy the JAR file into the container
-COPY laa-data-claims-certificated-service/build/libs/laa-data-claims-certificated-service-1.0.0.jar app.jar
+COPY laa-data-claims-certificated-service/build/libs/laa-data-claims-certificated-service-*.jar app.jar
 
 # Create a group and non-root user
 RUN addgroup -S appgroup && adduser -u 1001 -S appuser -G appgroup
@@ -18,4 +18,4 @@ USER 1001
 EXPOSE 8081 8181
 
 # Run the JAR file
-CMD java -jar app.jar
+CMD ["java", "-jar", "app.jar"]

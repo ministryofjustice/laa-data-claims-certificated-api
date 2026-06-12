@@ -1,3 +1,9 @@
+plugins {
+    // Provides the `release` task used by the shared "Create tag" pipeline step
+    // (./gradlew release -Prelease.useAutomaticVersion=true)
+    id 'net.researchgate.release' version '3.1.0'
+}
+
 subprojects {
     group = 'uk.gov.justice.laa.data.claims.certificated.api'
 }
