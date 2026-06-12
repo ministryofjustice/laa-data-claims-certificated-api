@@ -14,9 +14,6 @@ processResources {
     }
 }
 
-
-
-
 test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
