@@ -1,8 +1,8 @@
 plugins {
-    id 'io.freefair.lombok' version '9.4.0'
+    id 'io.freefair.lombok' version '9.5.0'
     id 'uk.gov.laa.springboot.laa-spring-boot-gradle-plugin'
-    id 'io.sentry.jvm.gradle' version '6.5.0'
-    id 'com.diffplug.spotless' version '6.25.0'
+    id 'io.sentry.jvm.gradle' version '6.10.0'
+    id 'com.diffplug.spotless' version '8.6.0'
 }
 
 // Replaces application.yml @version@  with version from gradle.properties
@@ -69,14 +69,14 @@ dependencies {
     implementation 'org.apache.commons:commons-lang3:3.20.0'
 
     // Rate Limiting / resilience
-    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.1.0'
+    implementation 'io.github.resilience4j:resilience4j-spring-boot4:2.4.0'
 
     implementation 'org.mapstruct:mapstruct:1.6.3'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
     // temporary dependency overrides see README
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.21.2'
-    implementation 'tools.jackson.core:jackson-core:3.1.2'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.22.0'
+    implementation 'tools.jackson.core:jackson-core:3.1.4'
 
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly 'org.postgresql:postgresql'
@@ -87,10 +87,10 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-restclient'
     testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'
 
-    testImplementation platform('org.testcontainers:testcontainers-bom:1.20.6')
+    testImplementation platform('org.testcontainers:testcontainers-bom:2.0.5')
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+    testImplementation 'org.testcontainers:testcontainers-postgresql'
     testImplementation 'au.com.dius.pact.provider:spring7:4.7.1'
 
     testRuntimeOnly 'org.flywaydb:flyway-database-postgresql'
@@ -116,7 +116,7 @@ dependencies {
     dependencies {
         // Pact Spring 6/7 provider support
         pactTestImplementation 'au.com.dius.pact.provider:spring7:4.7.1'
-        pactTestImplementation 'org.apache.httpcomponents:httpclient:4.5.13'
+        pactTestImplementation 'org.apache.httpcomponents:httpclient:4.5.14'
     }
 
     tasks.register('pactTest', Test) {
