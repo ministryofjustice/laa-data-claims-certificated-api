@@ -1,0 +1,89 @@
+# UAT values for data-claims-certificated-api
+# Used directly with laa-generic-helm-chart (cloned via cp-deploy.yml).
+appName: ""
+nameOverride: data-claims-certificated-api
+namespace: laa-data-claims-certificated-api-uat
+environmentName: uat
+replicaCount: 1
+minReplicaCount: 1
+image:                # set by CI pipeline
+  registry: ""
+  repository: ""
+  tag: ""
+service:
+  port: 8081
+livenessProbe:
+  httpGet:
+    path: /actuator/health
+    port: 8181
+  initialDelaySeconds: 60
+readinessProbe:
+  httpGet:
+    path: /actuator/health
+    port: 8181
+  initialDelaySeconds: 30
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1G
+  requests:
+    cpu: 25m
+    memory: 1G
+autoscaling:
+  enabled: false
+serviceAccountName: laa-data-claims-certificated-api-uat-service-account
+# DB connection details injected from the Kubernetes Secret that Cloud Platform
+# creates automatically when the RDS Terraform module is applied to the namespace.
+# Secret name: rds-postgresql-instance-output
+#
+# DB_NAME handling:
+#   - Standard data-claims-certificated-api-uat deployment (deploy-main.yml): uses this
+#     file as-is, so DB_NAME comes from the secret (the shared UAT database).
+#   - PR preview deployments (deploy-uat-preview.yml): the workflow creates a per-PR
+#     database and replaces the secrets list below via helm_additional_args so that
+#     DB_NAME is set to the per-PR database name instead of the secret value. Host/
+#     user/password stay shared (same RDS instance) and still come from the secret.
+containerEnvironment:
+  enabled: true
+  variables:
+    SPRINGDOC_API_DOCS_ENABLED: "true"
+    SPRINGDOC_SWAGGER_UI_ENABLED: "true"
+  secrets:
+    - name: DB_HOST
+      secretName: rds-postgresql-instance-output
+      key: rds_instance_address
+    - name: DB_NAME
+      secretName: rds-postgresql-instance-output
+      key: database_name
+    - name: DB_USERNAME
+      secretName: rds-postgresql-instance-output
+      key: database_username
+    - name: DB_PASSWORD
+      secretName: rds-postgresql-instance-output
+      key: database_password
+ingress:
+  # Dual exposure:
+  #  - green = internal ingress for in-cluster service-to-service traffic.
+  #  - blue  = public (modsec/WAF) ingress so the API/Swagger is reachable from a
+  #    laptop for reviewers and testers
+  green:
+    enabled: true
+    className: internal-non-prod
+    hostname: "data-claims-certificated-api-uat.internal-non-prod.cloud-platform.service.justice.gov.uk"
+    annotations:
+      external-dns.alpha.kubernetes.io/aws-weight: "100"
+      external-dns.alpha.kubernetes.io/set-identifier: "data-claims-certificated-api-green-laa-data-claims-certificated-api-uat-green"
+  blue:
+    enabled: true
+    className: modsec-non-prod
+    hostname: "data-claims-certificated-api-uat.cloud-platform.service.justice.gov.uk"
+    annotations:
+      external-dns.alpha.kubernetes.io/aws-weight: "100"
+      external-dns.alpha.kubernetes.io/set-identifier: "data-claims-certificated-api-blue-laa-data-claims-certificated-api-uat-green"
+      nginx.ingress.kubernetes.io/enable-modsecurity: "true"
+      nginx.ingress.kubernetes.io/modsecurity-snippet: |
+        SecRuleEngine On
+        SecAction "id:900200,phase:1,nolog,pass,t:none,setvar:tx.allowed_methods=GET HEAD POST OPTIONS PUT PATCH DELETE"
+        SecDefaultAction "phase:2,pass,log,tag:github_team=laa-data-stewardship-payments-team,tag:namespace=laa-data-claims-certificated-api-uat"
+servicemonitor:
+  enabled: false

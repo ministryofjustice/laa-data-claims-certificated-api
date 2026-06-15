@@ -24,6 +24,8 @@ paths:
           description: 'Forbidden'
         '404':
           description: 'Not found'
+        '429':
+          description: 'Too many requests'
         '500':
           description: 'Internal server error'
     post:
@@ -48,6 +50,8 @@ paths:
           description: 'Forbidden'
         '404':
           description: 'Not found'
+        '429':
+          description: 'Too many requests'
         '500':
           description: 'Internal server error'
 
@@ -80,6 +84,8 @@ paths:
           description: 'Forbidden'
         '404':
           description: 'Not found'
+        '429':
+          description: 'Too many requests'
         '500':
           description: 'Internal server error'
     put:
@@ -112,6 +118,8 @@ paths:
           description: 'Forbidden'
         '404':
           description: 'Not found'
+        '429':
+          description: 'Too many requests'
         '500':
           description: 'Internal server error'
     delete:
@@ -138,6 +146,8 @@ paths:
           description: 'Forbidden'
         '404':
           description: 'Not found'
+        '429':
+          description: 'Too many requests'
         '500':
           description: 'Internal server error'
 

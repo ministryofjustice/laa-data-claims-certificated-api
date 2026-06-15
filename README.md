@@ -47,6 +47,30 @@ The *.sql scripts in  `src/main/resources` have been included to provide an exam
 ### Run application via Docker
 `docker compose up`
 
+#### Local database configuration (docker-compose)
+
+The local PostgreSQL container's database settings are defined as inline defaults
+in `docker-compose.yml`. The app only needs `DB_HOST` overridden (to reach the DB
+at the `postgres` service name instead of `localhost`); its other DB settings come
+from the matching defaults in `application.yml`, so nothing is duplicated.
+
+| Variable      | Default                            | Purpose                                             |
+|---------------|------------------------------------|-----------------------------------------------------|
+| `DB_NAME`     | `data-claims-certificated-api_dev` | Database name (postgres container)                  |
+| `DB_USERNAME` | `user`                             | Database user (postgres container)                  |
+| `DB_PASSWORD` | `dev`                              | Database password (postgres container)              |
+| `DB_HOST`     | `postgres`                         | Host the app uses to reach the DB on the compose network |
+| `DB_PORT`     | `5432`                             | Host port mapped to the postgres container          |
+
+These are **non-secret local-only defaults**. Deployed environments do not use
+them — they inject `DB_*` from the `rds-postgresql-instance-output` Kubernetes
+secret instead (see `.helm/.../values/*.yaml`). To override a value locally,
+export it before running `docker compose up`, e.g.:
+
+```bash
+DB_PORT=5544 docker compose up
+```
+
 ### Debug application running via Docker
 
 #### Configuration
@@ -139,6 +163,91 @@ sentry:
   environment: <configure environment name here>
 ```
 
+### Rate Limiting
+
+The API is protected against excessive use with [resilience4j](https://resilience4j.readme.io/docs/ratelimiter)
+rate limiters. Each API operation has its **own** rate limiter instance so that heavy traffic on one
+endpoint cannot exhaust the budget of another.
+
+#### Rules and thresholds
+
+Limits are configured under `resilience4j.ratelimiter.instances` in
+[`application.yml`](laa-data-claims-certificated-service/src/main/resources/application.yml). The
+defaults are:
+
+| Operation            | HTTP request           | Rate limiter instance    | Limit            |
+|----------------------|------------------------|--------------------------|------------------|
+| List items           | `GET /api/v1/items`    | `getItemsRateLimiter`    | 10 requests / second |
+| Get item by id       | `GET /api/v1/items/{id}` | `getItemRateLimiter`   | 10 requests / second |
+| Create item          | `POST /api/v1/items`   | `createItemRateLimiter`  | 10 requests / second |
+| Update item          | `PUT /api/v1/items/{id}` | `updateItemRateLimiter`| 10 requests / second |
+| Delete item          | `DELETE /api/v1/items/{id}` | `deleteItemRateLimiter` | 10 requests / second |
+
+Each instance is configured with three properties:
+
+- `limitForPeriod` – the maximum number of requests permitted within each refresh window.
+- `limitRefreshPeriod` – the length of the window, after which the permit count is reset.
+- `timeoutDuration` – how long a caller waits for a permit before being rejected. This is set to
+  `0s` so that requests over the limit are rejected **immediately** with HTTP 429 rather than
+  blocking until a permit becomes available.
+
+#### Behaviour when a limit is exceeded
+
+When an endpoint receives more requests than its limit allows within the refresh window, the excess
+requests are rejected with **HTTP 429 Too Many Requests**. The response body is an
+[RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) problem detail served as
+`application/problem+json`:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Too Many Requests",
+  "status": 429,
+  "detail": "Rate limit exceeded. Please try again later."
+}
+```
+
+This fallback is implemented once in
+[`BaseApiController`](laa-data-claims-certificated-service/src/main/java/uk/gov/justice/laa/data/claims/certificated/api/controller/BaseApiController.java);
+controllers extend it and reference the shared `genericFallback` method from their `@RateLimiter`
+annotations. Rate limiter instance names are centralised as constants in
+[`RateLimiterNames`](laa-data-claims-certificated-service/src/main/java/uk/gov/justice/laa/data/claims/certificated/api/constants/RateLimiterNames.java)
+so the annotations always stay in sync with the configuration.
+
+#### Guidance for API consumers
+
+- **Stay within the limits** above. Spread bulk or batch work out over time rather than sending it
+  as a single burst.
+- **Handle HTTP 429 gracefully.** Treat a 429 as a signal to back off and retry later rather than
+  retrying immediately, which would simply consume the next window's budget.
+- **Use exponential backoff with jitter.** A common strategy is to wait ~1s, then 2s, 4s, 8s … (with
+  a small random jitter) between retries, up to a sensible maximum number of attempts.
+- **Make requests idempotent where possible** so that retries are safe.
+
+#### How to configure the limits
+
+To change a limit, edit the relevant instance under `resilience4j.ratelimiter.instances` in
+`application.yml`. For example, to allow 50 requests every 2 seconds for the list-items endpoint:
+
+```yaml
+resilience4j.ratelimiter:
+  instances:
+    getItemsRateLimiter:
+      limitForPeriod: 50
+      limitRefreshPeriod: 2s
+      timeoutDuration: 0s
+```
+
+Values can also be overridden per environment without code changes via Spring environment
+properties / environment variables, e.g.:
+
+```
+RESILIENCE4J_RATELIMITER_INSTANCES_GETITEMSRATELIMITER_LIMITFORPERIOD=50
+```
+
+When adding a new controller/endpoint, add a matching instance here, add a constant to
+`RateLimiterNames`, and reference it from the endpoint's `@RateLimiter` annotation.
+
 ## Libraries Used
 - [Spring Boot Actuator](https://docs.spring.io/spring-boot/reference/actuator/index.html) - used to provide various endpoints to help monitor the application, such as view application health and information.
 - [Spring Boot Web](https://docs.spring.io/spring-boot/reference/web/index.html) - used to provide features for building the REST API implementation.
@@ -150,6 +259,7 @@ sentry:
 - [MapStruct](https://mapstruct.org/) - used for object mapping, specifically for converting between different Java object types, such as Data Transfer Objects (DTOs)
   and Entity objects. It generates mapping code at compile code.
 - [PostgreSQL](https://www.postgresql.org/) - used to provide a local/example database.
+- [resilience4j](https://resilience4j.readme.io/docs/ratelimiter) - used to provide per-endpoint rate limiting, returning HTTP 429 responses when configured thresholds are exceeded.
 - [Sentry for Java SDK](https://docs.sentry.io/platforms/java/) - used to capture application exception events at runtime, which can be monitored via the Sentry UI.
 
 ## ⚠️ Temporary Dependency Overrides
@@ -159,10 +269,6 @@ available in a future `laa-spring-boot-common` release.
 
 | Dependency                                  | Overridden Version | Reason                                                                                                                                    | Date Added |
 |---------------------------------------------|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------|------------|
-| `com.fasterxml.jackson.core:jackson-core`   | `2.21.2`           | Fixes Snyk issue - [SNYK-JAVA-COMFASTERXMLJACKSONCORE-15907551](https://security.snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-15907551) | 2026-04-30 |
-| `org.apache.tomcat.embed:tomcat-embed-core` | `11.0.22`          | Fixes Snyk issues - [SNYK-JAVA-ORGAPACHETOMCATEMBED-15989820](https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHETOMCATEMBED-15989820), [SNYK-JAVA-ORGAPACHETOMCATEMBED-16643259](https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHETOMCATEMBED-16643259), [SNYK-JAVA-ORGAPACHETOMCATEMBED-16691231](https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHETOMCATEMBED-16691231) | 2026-04-30 |
-| `tools.jackson.core:jackson-core`           | `3.1.1`            | Fixes Snyk issue - [SNYK-JAVA-TOOLSJACKSONCORE-15907550](https://security.snyk.io/vuln/SNYK-JAVA-TOOLSJACKSONCORE-15907550)               | 2026-04-30 |
-| `org.postgresql:postgresql`                 | `42.7.11`          | Fixes Snyk issue - [SNYK-JAVA-ORGPOSTGRESQL-16321668](https://security.snyk.io/vuln/SNYK-JAVA-ORGPOSTGRESQL-16321668)                     | 2026-05-21 |
 
 ### Run Pact contract tests
 

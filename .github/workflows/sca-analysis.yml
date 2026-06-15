@@ -1,0 +1,174 @@
+name: SCA - Software Composition Analysis
+
+on:
+  workflow_call:
+    inputs:
+      java_version:
+        required: false
+        type: string
+        default: '25'
+      java_distribution:
+        required: false
+        type: string
+        default: 'corretto'
+      run_monitor:
+        description: 'Run snyk monitor and upload SARIF to GitHub Code Scanning (true on main branch only)'
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      snyk_client_id:
+        required: true
+      snyk_client_secret:
+        required: true
+  workflow_dispatch:
+    inputs:
+      java_version:
+        description: 'Java version to use'
+        required: false
+        default: '25'
+      java_distribution:
+        description: 'JDK distribution (temurin, corretto, etc.)'
+        required: false
+        default: 'corretto'
+      run_monitor:
+        description: 'Run snyk monitor and upload SARIF to GitHub Code Scanning'
+        required: false
+        default: 'false'
+
+jobs:
+  vulnerability-scan-app:
+    name: Snyk - Scan app source code
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Obtain Short-lived Snyk token
+        id: auth
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/snyk-auth@6db001458db30ae747d9eb8eb25707ce52b359bc
+        with:
+          client_id: ${{ secrets.snyk_client_id }}
+          client_secret: ${{ secrets.snyk_client_secret }}
+
+      - name: Run Snyk to check app for vulnerabilities
+        uses: snyk/actions/gradle@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
+        env:
+          SNYK_OAUTH_TOKEN: ${{ steps.auth.outputs.token }}
+          SNYK_TEST_EXCLUDE: build,generated
+          SNYK_TARGET_REFERENCE: main
+        with:
+          command: code test
+          args: --severity-threshold=high
+
+  vulnerability-scan-docker:
+    name: Snyk - Scan Docker image
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Obtain Short-lived Snyk token
+        id: auth
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/snyk-auth@6db001458db30ae747d9eb8eb25707ce52b359bc
+        with:
+          client_id: ${{ secrets.snyk_client_id }}
+          client_secret: ${{ secrets.snyk_client_secret }}
+
+      - name: Set up JDK ${{ inputs.java_version }}
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          java-version: ${{ inputs.java_version }}
+          distribution: ${{ inputs.java_distribution }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
+
+      - name: Build app jar with gradle
+        run: ./gradlew build
+
+      - name: Build Docker image for scanning
+        run: docker build -t laa-data-claims-certificated-api:scan .
+
+      - name: Run Snyk to check Docker image for vulnerabilities
+        uses: snyk/actions/docker@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
+        env:
+          SNYK_OAUTH_TOKEN: ${{ steps.auth.outputs.token }}
+        with:
+          image: laa-data-claims-certificated-api:scan
+          args: --file=Dockerfile --severity-threshold=high
+
+  vulnerability-report:
+    name: Snyk - Monitor and upload SARIF report
+    if: ${{ inputs.run_monitor == true }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up JDK ${{ inputs.java_version }}
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          java-version: ${{ inputs.java_version }}
+          distribution: ${{ inputs.java_distribution }}
+
+      - name: Obtain Short-lived Snyk token
+        id: auth
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/snyk-auth@6db001458db30ae747d9eb8eb25707ce52b359bc
+        with:
+          client_id: ${{ secrets.snyk_client_id }}
+          client_secret: ${{ secrets.snyk_client_secret }}
+
+      - name: Export Snyk token for remaining steps
+        shell: bash
+        run: |
+          TOKEN='${{ steps.auth.outputs.token }}'
+          if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+            echo "::error::snyk-auth returned empty/null token"
+            exit 1
+          fi
+          echo "::add-mask::$TOKEN"
+          echo "SNYK_OAUTH_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+
+      - name: Setup Snyk
+        uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
+
+      - name: Run Snyk to monitor app for vulnerabilities
+        run: snyk monitor --severity-threshold=high
+        continue-on-error: true
+
+      - name: Generate SARIF Snyk report
+        run: snyk test --sarif-file-output=snyk-app.sarif
+        continue-on-error: true
+
+      # Fix/hack for Snyk's sarif file to avoid this error uploading to GitHub.
+      # See https://github.com/github/codeql-action/issues/2187 for more context.
+      - name: Fix undefined values in SARIF
+        run: |
+          sed -i 's/"security-severity": "undefined"/"security-severity": "0"/g' snyk-app.sarif
+
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4.35.2
+        with:
+          sarif_file: snyk-app.sarif
