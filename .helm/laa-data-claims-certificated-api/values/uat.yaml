@@ -87,3 +87,14 @@ ingress:
         SecDefaultAction "phase:2,pass,log,tag:github_team=laa-data-stewardship-payments-team,tag:namespace=laa-data-claims-certificated-api-uat"
 servicemonitor:
   enabled: false
+
+metrics:
+  mainReleaseName: uat
+
+grafana:
+  enabled: true
+
+sentry:
+  enabled: false
+  environment: uat
+  tracesSampleRate: 0.25
