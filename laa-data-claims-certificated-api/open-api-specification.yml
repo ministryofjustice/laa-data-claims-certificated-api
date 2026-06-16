@@ -6,7 +6,7 @@ paths:
   /api/v1/items:
     get:
       tags:
-        - items
+        - items-query
       summary: Get items
       operationId: getItems
       responses:
@@ -28,7 +28,7 @@ paths:
           description: 'Internal server error'
     post:
       tags:
-        - items
+        - items-command
       summary: Create an item
       operationId: createItem
       requestBody:
@@ -56,7 +56,7 @@ paths:
       summary: Get item by id
       operationId: getItemById
       tags:
-        - items
+        - items-query
       parameters:
         - name: id
           in: path
@@ -84,7 +84,7 @@ paths:
           description: 'Internal server error'
     put:
       tags:
-        - items
+        - items-command
       summary: Update an item
       operationId: updateItem
       parameters:
@@ -118,7 +118,7 @@ paths:
       summary: Delete item by id
       operationId: deleteItem
       tags:
-        - items
+        - items-command
       parameters:
         - name: id
           in: path

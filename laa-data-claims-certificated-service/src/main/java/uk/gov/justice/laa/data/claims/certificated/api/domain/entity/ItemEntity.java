@@ -1,4 +1,4 @@
-package uk.gov.justice.laa.data.claims.certificated.api.entity;
+package uk.gov.justice.laa.data.claims.certificated.api.domain.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
