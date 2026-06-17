@@ -26,7 +26,7 @@ jobs:
           shellcheck -x scripts/*.sh scripts/lib/*.sh
 
   build:
-    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@3eaf64bb987ef0648a2380d4e49927d1693ec195 # v2
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@3eaf64bb987ef0648a2380d4e49927d1693ec195 # v2.2.1
     permissions:
       contents: write
       packages: write
