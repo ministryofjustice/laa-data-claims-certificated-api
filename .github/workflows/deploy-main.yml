@@ -28,13 +28,14 @@ jobs:
       java_version: *JAVA_VERSION
       java_distribution: *JDK_DISTRIBUTION
       build_command: 'assemble'
-      publish_package: 'false'
+      publish_package: 'true'
       junit_results: 'false'
       junit_report: 'false'
       checkstyle_report: 'false'
       jacoco_coverage_report: 'false'
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
+      # aws_region: ${{ vars.AWS_REGION }} # although not required, it would be good to explicitly set this
 
   sca-scan:
     needs:
@@ -70,7 +71,7 @@ jobs:
       ecr_repository: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
       ecr_region: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REGION }}
       ecr_role_to_assume: ${{ secrets.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_ROLE_TO_ASSUME }}
-      snyk_token: ""
+      snyk_token: "" # SNYK_TOKEN, set if available, otherwise set by auth step
 
   # Obtain the ECR registry host for the Helm deploy. The shared ecr-publish-image
   # workflow logs into ECR but does not output the registry, and a reusable-workflow
@@ -96,11 +97,23 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # v2.1.6
 
+  get-laa-ips:
+    runs-on: ubuntu-latest
+    outputs:
+      laa_ips: ${{ steps.fetch.outputs.laa_ips }}
+    steps:
+      - name: Fetch LAA IP allowlist
+        id: fetch
+        run: |
+          LAA_IPS=$(curl -s https://raw.githubusercontent.com/ministryofjustice/laa-ip-allowlist/main/cidrs.txt | tr -d ' ' | tr '\n' ',' | sed 's/,/\\,/g' | sed 's/\\,$//')
+          echo "laa_ips=$LAA_IPS" >> $GITHUB_OUTPUT
+
   deploy-uat:
     needs:
       - ecr-publish-image
       - sca-scan
       - get-ecr-registry
+      - get-laa-ips
     permissions:
       id-token: write
       contents: read
@@ -111,13 +124,16 @@ jobs:
       image_registry: ${{ needs.get-ecr-registry.outputs.registry }}
       image_repo: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
       k8s_service_account: laa-data-claims-certificated-api-uat-service-account
+      helm_additional_args: >-
+        --set 'ingress.blue.annotations.nginx\.ingress\.kubernetes\.io/whitelist-source-range=${{ needs.get-laa-ips.outputs.laa_ips }}'
     secrets: inherit
 
   deploy-staging:
     needs:
-      - ecr-publish-image
-      - sca-scan
-      - get-ecr-registry
+      - ecr-publish-image # Redundant? As deploy-uat already does this
+      - sca-scan # Redundant? As deploy-uat already does this
+      - get-ecr-registry # Redundant? As deploy-uat already does this
+      - get-laa-ips # Redundant? As deploy-uat already does this
       - deploy-uat
     permissions:
       id-token: write
@@ -129,13 +145,15 @@ jobs:
       image_registry: ${{ needs.get-ecr-registry.outputs.registry }}
       image_repo: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
       k8s_service_account: laa-data-claims-certificated-api-staging-service-account
+      helm_additional_args: >-
+        --set 'ingress.blue.annotations.nginx\.ingress\.kubernetes\.io/whitelist-source-range=${{ needs.get-laa-ips.outputs.laa_ips }}'
     secrets: inherit
 
   deploy-production:
     needs:
-      - ecr-publish-image
-      - sca-scan
-      - get-ecr-registry
+      - ecr-publish-image # Redundant? As deploy-staging already does this
+      - sca-scan # Redundant? As deploy-staging already does this
+      - get-ecr-registry # Redundant? As deploy-staging already does this
       - deploy-staging
     permissions:
       id-token: write

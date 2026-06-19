@@ -24,13 +24,16 @@ jobs:
       java_distribution: *JDK_DISTRIBUTION
       integration_test_task: "integrationTest"
       create_tag: 'true'
-      github_bot_username: 'laa-ccms-caab-service'
+      github_bot_username: 'laa-java-service-deployer'
       junit_results_path: 'laa-data-claims-certificated-service/build/test-results'
       junit_report_path: 'laa-data-claims-certificated-service/build/reports/tests'
       checkstyle_report_path: 'laa-data-claims-certificated-service/build/reports/checkstyle'
       jacoco_coverage_report_path: 'laa-data-claims-certificated-service/build/reports/jacoco'
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
+      github_app_id: ${{ vars.LAA_JAVA_SERVICE_DEPLOYER_APP_ID }}
+      github_app_private_key: ${{ secrets.LAA_JAVA_SERVICE_DEPLOYER_KEY }}
+      github_app_organisation: 'ministryofjustice'
 
   sca-scan:
     needs:
