@@ -27,6 +27,10 @@ on:
         required: false
         type: string
         description: Kubernetes service account name for cluster authentication
+      helm_additional_args:
+        required: false
+        type: string
+        description: Additional arguments appended verbatim to the helm upgrade command
 
 jobs:
   deploy:
@@ -40,4 +44,5 @@ jobs:
       helm_chart: ./laa-generic-helm-chart
       helm_values_path: .helm/laa-data-claims-certificated-api/values/${{ inputs.environment }}.yaml
       k8s_service_account: ${{ inputs.k8s_service_account }}
+      helm_additional_args: ${{ inputs.helm_additional_args }}
     secrets: inherit
