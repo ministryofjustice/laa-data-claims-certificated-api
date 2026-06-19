@@ -1,8 +1,9 @@
 name: Build main
 
 on:
-  push:
+  pull_request:
     branches: [ main ]
+    types: [ closed ]
 
 env:
   JAVA_VERSION: &JAVA_VERSION '25'
@@ -10,6 +11,7 @@ env:
 
 jobs:
   build:
+    if: ${{ github.event.pull_request.merged == true }}
     # Shared workflow (pinned by SHA). With no overrides it runs `build` (compile
     # + unit tests) and surfaces JUnit/checkstyle/jacoco reports — those inputs
     # default to true upstream, so we don't restate them here. The only behavioural
