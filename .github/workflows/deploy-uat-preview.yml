@@ -12,7 +12,7 @@ env:
 
 jobs:
   build:
-    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@3eaf64bb987ef0648a2380d4e49927d1693ec195 # v2.2.1
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@a5b870c152d0bc4a7f67a23f2c226868f94d7041 # v2.2.2
     permissions:
       contents: write
       packages: write
@@ -44,7 +44,7 @@ jobs:
 
   ecr-publish-image:
     needs: [ build ]
-    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/ecr-publish-image.yml@3eaf64bb987ef0648a2380d4e49927d1693ec195 # v2.2.1
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/ecr-publish-image.yml@a5b870c152d0bc4a7f67a23f2c226868f94d7041 # v2.2.2
     permissions:
       contents: read
       id-token: write
@@ -80,7 +80,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Get release name
         id: get_release_name
