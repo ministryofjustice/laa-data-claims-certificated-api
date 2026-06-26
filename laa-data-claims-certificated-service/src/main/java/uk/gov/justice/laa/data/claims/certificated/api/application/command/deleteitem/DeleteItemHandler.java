@@ -1,11 +1,10 @@
-package uk.gov.justice.laa.data.claims.certificated.api.application.command.handler;
+package uk.gov.justice.laa.data.claims.certificated.api.application.command.deleteitem;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.justice.laa.data.claims.certificated.api.application.command.DeleteItemCommand;
-import uk.gov.justice.laa.data.claims.certificated.api.domain.repository.ItemRepository;
+import uk.gov.justice.laa.data.claims.certificated.api.application.command.shared.repository.ItemRepository;
 import uk.gov.justice.laa.data.claims.certificated.api.exception.ItemNotFoundException;
 
 /** Handles the deletion of an existing item. */

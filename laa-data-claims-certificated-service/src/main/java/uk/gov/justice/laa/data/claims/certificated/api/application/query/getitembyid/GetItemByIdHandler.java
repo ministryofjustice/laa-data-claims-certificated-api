@@ -1,13 +1,12 @@
-package uk.gov.justice.laa.data.claims.certificated.api.application.query.handler;
+package uk.gov.justice.laa.data.claims.certificated.api.application.query.getitembyid;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.justice.laa.data.claims.certificated.api.application.query.GetItemByIdQuery;
+import uk.gov.justice.laa.data.claims.certificated.api.application.query.shared.readmodel.ItemReadModel;
+import uk.gov.justice.laa.data.claims.certificated.api.application.query.shared.repository.ItemReadRepository;
 import uk.gov.justice.laa.data.claims.certificated.api.exception.ItemNotFoundException;
-import uk.gov.justice.laa.data.claims.certificated.api.readmodel.repository.ItemViewRepository;
-import uk.gov.justice.laa.data.claims.certificated.api.readmodel.view.ItemView;
 
 /** Handles retrieval of a single item by identifier. */
 @Slf4j
@@ -15,18 +14,18 @@ import uk.gov.justice.laa.data.claims.certificated.api.readmodel.view.ItemView;
 @Component
 public class GetItemByIdHandler {
 
-  private final ItemViewRepository itemViewRepository;
+  private final ItemReadRepository itemReadRepository;
 
   /**
    * Handles the given get item by id query.
    *
    * @param query the get item by id query
-   * @return the item view
+   * @return the item read model
    */
   @Transactional(readOnly = true)
-  public ItemView handle(GetItemByIdQuery query) {
+  public ItemReadModel handle(GetItemByIdQuery query) {
     log.info("Retrieving item: {}", query.id());
-    return itemViewRepository
+    return itemReadRepository
         .findProjectedById(query.id())
         .orElseThrow(
             () ->

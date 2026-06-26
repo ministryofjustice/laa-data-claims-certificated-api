@@ -1,4 +1,4 @@
-package uk.gov.justice.laa.data.claims.certificated.api.controller;
+package uk.gov.justice.laa.data.claims.certificated.api.controller.command;
 
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import uk.gov.justice.laa.data.claims.certificated.api.api.ItemsCommandApi;
-import uk.gov.justice.laa.data.claims.certificated.api.application.command.CreateItemCommand;
-import uk.gov.justice.laa.data.claims.certificated.api.application.command.DeleteItemCommand;
-import uk.gov.justice.laa.data.claims.certificated.api.application.command.UpdateItemCommand;
-import uk.gov.justice.laa.data.claims.certificated.api.application.command.handler.CreateItemHandler;
-import uk.gov.justice.laa.data.claims.certificated.api.application.command.handler.DeleteItemHandler;
-import uk.gov.justice.laa.data.claims.certificated.api.application.command.handler.UpdateItemHandler;
+import uk.gov.justice.laa.data.claims.certificated.api.application.command.createitem.CreateItemCommand;
+import uk.gov.justice.laa.data.claims.certificated.api.application.command.createitem.CreateItemHandler;
+import uk.gov.justice.laa.data.claims.certificated.api.application.command.deleteitem.DeleteItemCommand;
+import uk.gov.justice.laa.data.claims.certificated.api.application.command.deleteitem.DeleteItemHandler;
+import uk.gov.justice.laa.data.claims.certificated.api.application.command.updateitem.UpdateItemCommand;
+import uk.gov.justice.laa.data.claims.certificated.api.application.command.updateitem.UpdateItemHandler;
 import uk.gov.justice.laa.data.claims.certificated.api.model.ItemRequestBody;
 
 /** Controller handling write (command) operations on items. */

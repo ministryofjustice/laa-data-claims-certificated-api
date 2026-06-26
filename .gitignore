@@ -8,6 +8,9 @@ build/
 
 laa-data-claims-certificated-api/generated
 
+### Eclipse ###
+bin/
+
 ### IntelliJ IDEA ###
 .idea
 *.iws

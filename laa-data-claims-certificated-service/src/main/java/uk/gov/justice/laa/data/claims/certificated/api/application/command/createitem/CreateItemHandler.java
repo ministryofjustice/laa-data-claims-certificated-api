@@ -1,12 +1,11 @@
-package uk.gov.justice.laa.data.claims.certificated.api.application.command.handler;
+package uk.gov.justice.laa.data.claims.certificated.api.application.command.createitem;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.justice.laa.data.claims.certificated.api.application.command.CreateItemCommand;
-import uk.gov.justice.laa.data.claims.certificated.api.domain.entity.ItemEntity;
-import uk.gov.justice.laa.data.claims.certificated.api.domain.repository.ItemRepository;
+import uk.gov.justice.laa.data.claims.certificated.api.application.command.shared.repository.ItemRepository;
+import uk.gov.justice.laa.data.claims.certificated.api.domain.ItemEntity;
 
 /** Handles the creation of a new item. */
 @Slf4j
@@ -25,10 +24,10 @@ public class CreateItemHandler {
   @Transactional
   public Long handle(CreateItemCommand command) {
     log.info("Creating item: {}", command.name());
-    ItemEntity entity = new ItemEntity();
-    entity.setName(command.name());
-    entity.setDescription(command.description());
-    ItemEntity saved = itemRepository.save(entity);
+    ItemEntity item = new ItemEntity();
+    item.setName(command.name());
+    item.setDescription(command.description());
+    ItemEntity saved = itemRepository.save(item);
     log.info("Created item with id: {}", saved.getId());
     return saved.getId();
   }
