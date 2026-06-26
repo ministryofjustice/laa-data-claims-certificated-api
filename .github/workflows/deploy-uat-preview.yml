@@ -1,17 +1,53 @@
 name: Deploy UAT preview
 
 on:
+  workflow_dispatch:
   pull_request:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 env:
   JAVA_VERSION: &JAVA_VERSION '25'
   JDK_DISTRIBUTION: &JDK_DISTRIBUTION 'corretto'
 
 jobs:
+  compute-snapshot-version:
+    runs-on: ubuntu-latest
+    outputs:
+      snapshot_version: ${{ steps.version.outputs.snapshot_version }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Compute version
+        id: compute
+        uses: ministryofjustice/laa-ccms-common-workflows/.github/actions/compute-version@4daa796eff475c7a107e17daf4e4882b8a1b949b # v2.3.0
+      - name: Compute snapshot version
+        id: version
+        shell: bash
+        env:
+          BUMP_TYPE: ${{ steps.compute.outputs.bump_type }}
+          MAJOR:     ${{ steps.compute.outputs.major }}
+          MINOR:     ${{ steps.compute.outputs.minor }}
+          PATCH:     ${{ steps.compute.outputs.patch }}
+        run: |
+          set -eu
+          BUMP="${BUMP_TYPE:-none}"
+          M="${MAJOR:-0}"; N="${MINOR:-0}"; P="${PATCH:-0}"
+          if [[ "$BUMP" == "none" ]]; then P=$((P+1)); fi
+          HASH=$(git rev-parse --short HEAD)
+          VERSION="${M}.${N}.${P}-${HASH}-SNAPSHOT"
+          echo "snapshot_version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Snapshot version: ${VERSION}"
+
   build:
+    needs: [ compute-snapshot-version ]
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@4daa796eff475c7a107e17daf4e4882b8a1b949b # v2.3.0
     permissions:
       contents: write
@@ -21,6 +57,8 @@ jobs:
       java_distribution: *JDK_DISTRIBUTION
       integration_test_task: "integrationTest"
       publish_package: 'false'
+      release_type: 'snapshot'
+      override_version: ${{ needs.compute-snapshot-version.outputs.snapshot_version }}
       semgrep_check: 'true'
       junit_results_path: 'laa-data-claims-certificated-service/build/test-results'
       junit_report_path: 'laa-data-claims-certificated-service/build/reports/tests'
@@ -43,7 +81,7 @@ jobs:
       snyk_client_secret: ${{ secrets.SNYK_CLIENT_SECRET }}
 
   ecr-publish-image:
-    needs: [ build ]
+    needs: [ build, compute-snapshot-version ]
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/ecr-publish-image.yml@4daa796eff475c7a107e17daf4e4882b8a1b949b # v2.3.0
     permissions:
       contents: read
@@ -53,7 +91,7 @@ jobs:
       java_version: *JAVA_VERSION
       java_distribution: *JDK_DISTRIBUTION
       jar_subproject: 'laa-data-claims-certificated-service'
-      image_version: ${{ github.sha }}
+      image_version: ${{ format('data-claims-certificated-api-{0}', needs.compute-snapshot-version.outputs.snapshot_version) }}
       # Docker image scan is handled by sca-analysis.yml using short-lived SNYK_CLIENT_ID/SECRET
       # tokens — disabling here to avoid duplicate scans and the need for a static SNYK_TOKEN.
       image_scan: 'false'
