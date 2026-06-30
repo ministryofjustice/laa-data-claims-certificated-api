@@ -12,7 +12,7 @@ env:
 
 jobs:
   build:
-    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@dc4173bfc12f714d7e8cbdd9f524d00ef02e25c4 # v2
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@a5b870c152d0bc4a7f67a23f2c226868f94d7041 # v2.2.2
     permissions:
       contents: write
       packages: write
@@ -44,7 +44,7 @@ jobs:
 
   ecr-publish-image:
     needs: [ build ]
-    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/ecr-publish-image.yml@dc4173bfc12f714d7e8cbdd9f524d00ef02e25c4 # v2
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/ecr-publish-image.yml@a5b870c152d0bc4a7f67a23f2c226868f94d7041 # v2.2.2
     permissions:
       contents: read
       id-token: write
@@ -80,7 +80,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Get release name
         id: get_release_name
@@ -121,14 +121,25 @@ jobs:
       registry: ${{ steps.login-ecr.outputs.registry }}
     steps:
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.0.1
+        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v4.0.1
         with:
           aws-region: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REGION }}
           role-to-assume: ${{ secrets.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_ROLE_TO_ASSUME }}
 
       - name: Login to ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+        uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # v2.1.6
+
+  get-laa-ips:
+    runs-on: ubuntu-latest
+    outputs:
+      laa_ips: ${{ steps.fetch.outputs.laa_ips }}
+    steps:
+      - name: Fetch LAA IP allowlist
+        id: fetch
+        run: |
+          LAA_IPS=$(curl -s https://raw.githubusercontent.com/ministryofjustice/laa-ip-allowlist/main/cidrs.txt | tr -d ' ' | tr '\n' ',' | sed 's/,/\\,/g' | sed 's/\\,$//')
+          echo "laa_ips=$LAA_IPS" >> $GITHUB_OUTPUT
 
   # The deploy MUST go through cp-deploy.yml: the octo-sts trust policy for
   # laa-generic-helm-chart only accepts tokens whose job_workflow_ref matches
@@ -138,6 +149,7 @@ jobs:
       - create-preview-db
       - ecr-publish-image
       - get-ecr-registry
+      - get-laa-ips
     permissions:
       id-token: write
       contents: read
@@ -173,6 +185,7 @@ jobs:
         --set "ingress.green.annotations.external-dns\.alpha\.kubernetes\.io/set-identifier=${{ needs.create-preview-db.outputs.release-name }}-data-claims-certificated-api-green-laa-data-claims-certificated-api-uat-green"
         --set ingress.blue.hostname=${{ needs.create-preview-db.outputs.release-name }}-laa-data-claims-certificated-api-uat.cloud-platform.service.justice.gov.uk
         --set "ingress.blue.annotations.external-dns\.alpha\.kubernetes\.io/set-identifier=${{ needs.create-preview-db.outputs.release-name }}-data-claims-certificated-api-blue-laa-data-claims-certificated-api-uat-green"
+        --set 'ingress.blue.annotations.nginx\.ingress\.kubernetes\.io/whitelist-source-range=${{ needs.get-laa-ips.outputs.laa_ips }}'
       k8s_service_account: laa-data-claims-certificated-api-uat-service-account
     secrets: inherit
 
@@ -209,5 +222,3 @@ jobs:
               + `**Swagger UI:** https://${host}/swagger-ui/index.html\n`
               + `**OpenAPI docs:** https://${host}/v3/api-docs\n`;
             await github.rest.issues.createComment({ owner, repo, issue_number, body });
-
-

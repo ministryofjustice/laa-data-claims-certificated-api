@@ -1,8 +1,8 @@
 plugins {
     id 'io.freefair.lombok' version '9.5.0'
     id 'uk.gov.laa.springboot.laa-spring-boot-gradle-plugin'
-    id 'io.sentry.jvm.gradle' version '6.10.0'
-    id 'com.diffplug.spotless' version '8.6.0'
+    id 'io.sentry.jvm.gradle' version '6.11.0'
+    id 'com.diffplug.spotless' version '8.7.0'
 }
 
 // Replaces application.yml @version@  with version from gradle.properties
@@ -79,7 +79,7 @@ dependencies {
 
     // temporary dependency overrides see README
     implementation 'com.fasterxml.jackson.core:jackson-core:2.22.0'
-    implementation 'tools.jackson.core:jackson-core:3.1.4'
+    implementation 'tools.jackson.core:jackson-core:3.2.0'
 
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly 'org.postgresql:postgresql'

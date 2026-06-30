@@ -72,14 +72,14 @@ ingress:
     hostname: "data-claims-certificated-api-uat.internal-non-prod.cloud-platform.service.justice.gov.uk"
     annotations:
       external-dns.alpha.kubernetes.io/aws-weight: "100"
-      external-dns.alpha.kubernetes.io/set-identifier: "data-claims-certificated-api-green-laa-data-claims-certificated-api-uat-green"
+      external-dns.alpha.kubernetes.io/set-identifier: "data-claims-certificated-api-uat-green-laa-data-claims-certificated-api-uat-green"
   blue:
     enabled: true
     className: modsec-non-prod
     hostname: "data-claims-certificated-api-uat.cloud-platform.service.justice.gov.uk"
     annotations:
       external-dns.alpha.kubernetes.io/aws-weight: "100"
-      external-dns.alpha.kubernetes.io/set-identifier: "data-claims-certificated-api-blue-laa-data-claims-certificated-api-uat-green"
+      external-dns.alpha.kubernetes.io/set-identifier: "data-claims-certificated-api-uat-blue-laa-data-claims-certificated-api-uat-green"
       nginx.ingress.kubernetes.io/enable-modsecurity: "true"
       nginx.ingress.kubernetes.io/modsecurity-snippet: |
         SecRuleEngine On

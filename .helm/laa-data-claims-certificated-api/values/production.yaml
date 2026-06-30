@@ -61,7 +61,7 @@ ingress:
     hostname: "data-claims-certificated-api-production.internal.cloud-platform.service.justice.gov.uk"
     annotations:
       external-dns.alpha.kubernetes.io/aws-weight: "100"
-      external-dns.alpha.kubernetes.io/set-identifier: "data-claims-certificated-api-green-laa-data-claims-certificated-api-prod-green"
+      external-dns.alpha.kubernetes.io/set-identifier: "data-claims-certificated-api-production-green-laa-data-claims-certificated-api-prod-green"
 servicemonitor:
   enabled: false
 

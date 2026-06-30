@@ -1,8 +1,9 @@
 name: Build main
 
 on:
-  push:
+  pull_request:
     branches: [ main ]
+    types: [ closed ]
 
 env:
   JAVA_VERSION: &JAVA_VERSION '25'
@@ -10,12 +11,13 @@ env:
 
 jobs:
   build:
+    if: ${{ github.event.pull_request.merged == true }}
     # Shared workflow (pinned by SHA). With no overrides it runs `build` (compile
     # + unit tests) and surfaces JUnit/checkstyle/jacoco reports — those inputs
     # default to true upstream, so we don't restate them here. The only behavioural
     # override we need is create_tag: true, which cuts the release tag that in turn
     # triggers deploy-main.yml. integration_test_task opts the build into integration tests.
-    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@dc4173bfc12f714d7e8cbdd9f524d00ef02e25c4 # v2
+    uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@a5b870c152d0bc4a7f67a23f2c226868f94d7041 # v2.2.2
     permissions:
       contents: write
       packages: write
@@ -24,13 +26,16 @@ jobs:
       java_distribution: *JDK_DISTRIBUTION
       integration_test_task: "integrationTest"
       create_tag: 'true'
-      github_bot_username: 'laa-ccms-caab-service'
+      github_bot_username: 'laa-java-service-deployer'
       junit_results_path: 'laa-data-claims-certificated-service/build/test-results'
       junit_report_path: 'laa-data-claims-certificated-service/build/reports/tests'
       checkstyle_report_path: 'laa-data-claims-certificated-service/build/reports/checkstyle'
       jacoco_coverage_report_path: 'laa-data-claims-certificated-service/build/reports/jacoco'
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
+      github_app_id: ${{ vars.LAA_JAVA_SERVICE_DEPLOYER_APP_ID }}
+      github_app_private_key: ${{ secrets.LAA_JAVA_SERVICE_DEPLOYER_KEY }}
+      github_app_organisation: 'ministryofjustice'
 
   sca-scan:
     needs:
