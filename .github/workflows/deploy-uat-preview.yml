@@ -187,7 +187,7 @@ jobs:
         --set "ingress.blue.annotations.external-dns\.alpha\.kubernetes\.io/set-identifier=${{ needs.create-preview-db.outputs.release-name }}-data-claims-certificated-api-blue-laa-data-claims-certificated-api-uat-green"
         --set 'ingress.blue.annotations.nginx\.ingress\.kubernetes\.io/whitelist-source-range=${{ needs.get-laa-ips.outputs.laa_ips }}'
       k8s_service_account: laa-data-claims-certificated-api-uat-service-account
-    secrets: inherit
+    secrets: inherit # nosemgrep: yaml.github-actions.security.secrets-inherit.secrets-inherit
 
   # Post the ephemeral preview URL back to the PR as a comment so reviewers can
   # click straight through. The URL is derived solely from the PR number, so it is
