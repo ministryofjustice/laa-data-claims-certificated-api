@@ -7,6 +7,10 @@ repositories {
     mavenCentral()
 }
 
+// Upgrade logback to fix Expression Injection (SNYK-JAVA-CHQOSLOGBACK-17675439)
+// Overrides the Spring Boot managed logback.version for logback-core and logback-classic.
+ext['logback.version'] = '1.5.36'
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
