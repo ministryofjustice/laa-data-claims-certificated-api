@@ -127,7 +127,11 @@ jobs:
       k8s_service_account: laa-data-claims-certificated-api-uat-service-account
       helm_additional_args: >-
         --set 'ingress.blue.annotations.nginx\.ingress\.kubernetes\.io/whitelist-source-range=${{ needs.get-laa-ips.outputs.laa_ips }}'
-    secrets: inherit
+    secrets:
+      kube_cert: ${{ secrets.KUBE_CERT }}
+      kube_token: ${{ secrets.KUBE_TOKEN }}
+      kube_cluster: ${{ secrets.KUBE_CLUSTER }}
+      kube_namespace: ${{ secrets.KUBE_NAMESPACE }}
 
   deploy-staging:
     needs:
@@ -148,7 +152,11 @@ jobs:
       k8s_service_account: laa-data-claims-certificated-api-staging-service-account
       helm_additional_args: >-
         --set 'ingress.blue.annotations.nginx\.ingress\.kubernetes\.io/whitelist-source-range=${{ needs.get-laa-ips.outputs.laa_ips }}'
-    secrets: inherit
+    secrets:
+      kube_cert: ${{ secrets.KUBE_CERT }}
+      kube_token: ${{ secrets.KUBE_TOKEN }}
+      kube_cluster: ${{ secrets.KUBE_CLUSTER }}
+      kube_namespace: ${{ secrets.KUBE_NAMESPACE }}
 
   deploy-production:
     needs:
@@ -166,4 +174,8 @@ jobs:
       image_registry: ${{ needs.get-ecr-registry.outputs.registry }}
       image_repo: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
       k8s_service_account: laa-data-claims-certificated-api-prod-service-account
-    secrets: inherit
+    secrets:
+      kube_cert: ${{ secrets.KUBE_CERT }}
+      kube_token: ${{ secrets.KUBE_TOKEN }}
+      kube_cluster: ${{ secrets.KUBE_CLUSTER }}
+      kube_namespace: ${{ secrets.KUBE_NAMESPACE }}

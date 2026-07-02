@@ -31,6 +31,15 @@ on:
         required: false
         type: string
         description: Additional arguments appended verbatim to the helm upgrade command
+    secrets:
+      kube_cert:
+        required: true
+      kube_token:
+        required: true
+      kube_cluster:
+        required: true
+      kube_namespace:
+        required: true
 
 jobs:
   deploy:
@@ -45,4 +54,4 @@ jobs:
       helm_values_path: .helm/laa-data-claims-certificated-api/values/${{ inputs.environment }}.yaml
       k8s_service_account: ${{ inputs.k8s_service_account }}
       helm_additional_args: ${{ inputs.helm_additional_args }}
-    secrets: inherit
+    secrets: inherit # nosemgrep: yaml.github-actions.security.secrets-inherit.secrets-inherit
