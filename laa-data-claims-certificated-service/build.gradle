@@ -1,7 +1,7 @@
 plugins {
     id 'io.freefair.lombok' version '9.5.0'
     id 'uk.gov.laa.springboot.laa-spring-boot-gradle-plugin'
-    id 'io.sentry.jvm.gradle' version '6.11.0'
+    id 'io.sentry.jvm.gradle' version '6.12.0'
     id 'com.diffplug.spotless' version '8.7.0'
 }
 
@@ -52,6 +52,14 @@ spotless {
 
 // **** When adding new overrides please check if any existing overrides are now redundant (by removing them and adding them back only if required)
 
+// Upgrade logback to fix Expression Injection (SNYK-JAVA-CHQOSLOGBACK-17675439)
+// Overrides the Spring Boot managed logback.version for logback-core and logback-classic.
+ext['logback.version'] = '1.5.36'
+
+// Upgrade Tomcat to fix Improper Authentication (SNYK-JAVA-ORGAPACHETOMCATEMBED-17732890)
+// and Detection of Error Condition Without Action (SNYK-JAVA-ORGAPACHETOMCATEMBED-17733746)
+ext['tomcat.version'] = '11.0.23'
+
 dependencies {
     implementation project(':laa-data-claims-certificated-api')
 
@@ -94,7 +102,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     testImplementation 'org.testcontainers:testcontainers-postgresql'
-    testImplementation 'au.com.dius.pact.provider:spring7:4.7.1'
+    testImplementation 'au.com.dius.pact.provider:spring7:4.7.3'
 
     testRuntimeOnly 'org.flywaydb:flyway-database-postgresql'
 
@@ -118,7 +126,7 @@ dependencies {
 
     dependencies {
         // Pact Spring 6/7 provider support
-        pactTestImplementation 'au.com.dius.pact.provider:spring7:4.7.1'
+        pactTestImplementation 'au.com.dius.pact.provider:spring7:4.7.3'
         pactTestImplementation 'org.apache.httpcomponents:httpclient:4.5.14'
     }
 
