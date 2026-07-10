@@ -60,6 +60,11 @@ ext['logback.version'] = '1.5.36'
 // and Detection of Error Condition Without Action (SNYK-JAVA-ORGAPACHETOMCATEMBED-17733746)
 ext['tomcat.version'] = '11.0.23'
 
+// Upgrade PostgreSQL JDBC driver to fix Incorrect Implementation of Authentication Algorithm
+// (SNYK-JAVA-ORGPOSTGRESQL-17874248)
+// Overrides the Spring Boot managed postgresql.version.
+ext['postgresql.version'] = '42.7.12'
+
 dependencies {
     implementation project(':laa-data-claims-certificated-api')
 
