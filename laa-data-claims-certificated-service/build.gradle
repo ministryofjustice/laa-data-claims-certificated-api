@@ -1,8 +1,8 @@
 plugins {
     id 'io.freefair.lombok' version '9.5.0'
     id 'uk.gov.laa.springboot.laa-spring-boot-gradle-plugin'
-    id 'io.sentry.jvm.gradle' version '6.12.0'
-    id 'com.diffplug.spotless' version '8.7.0'
+    id 'io.sentry.jvm.gradle' version '6.13.0'
+    id 'com.diffplug.spotless' version '8.8.0'
 }
 
 // Replaces application.yml @version@  with version from gradle.properties
@@ -59,6 +59,11 @@ ext['logback.version'] = '1.5.36'
 // Upgrade Tomcat to fix Improper Authentication (SNYK-JAVA-ORGAPACHETOMCATEMBED-17732890)
 // and Detection of Error Condition Without Action (SNYK-JAVA-ORGAPACHETOMCATEMBED-17733746)
 ext['tomcat.version'] = '11.0.23'
+
+// Upgrade PostgreSQL JDBC driver to fix Incorrect Implementation of Authentication Algorithm
+// (SNYK-JAVA-ORGPOSTGRESQL-17874248)
+// Overrides the Spring Boot managed postgresql.version.
+ext['postgresql.version'] = '42.7.12'
 
 dependencies {
     implementation project(':laa-data-claims-certificated-api')
