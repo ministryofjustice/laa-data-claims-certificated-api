@@ -2,9 +2,15 @@ name: Deploy main
 
 on:
   push:
-    tags:
-      - '*'
+    branches: [ main ]
   workflow_dispatch:
+    inputs:
+      release_type:
+        type: choice
+        required: true
+        default: "patch"
+        description: "Release type"
+        options: [ "patch", "minor", "major" ]
 
 permissions:
   contents: read
@@ -14,46 +20,26 @@ env:
   JDK_DISTRIBUTION: &JDK_DISTRIBUTION 'corretto'
 
 jobs:
-  assemble:
-    # Same shared workflow as build-main.yml, but here it only packages the
-    # artifact to ship — validation (tests/quality gates) already ran in
-    # build-main.yml before the tag was created. We override build_command to
-    # 'assemble' (no tests) and therefore turn off the report inputs (which
-    # default to true upstream) since an assemble-only run produces no test,
-    # coverage or checkstyle output to publish.
+  release:
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/gradle-build-and-publish.yml@4daa796eff475c7a107e17daf4e4882b8a1b949b # v2.3.0
     permissions:
       contents: write
       packages: write
     with:
-      java_version: *JAVA_VERSION
-      java_distribution: *JDK_DISTRIBUTION
       build_command: 'assemble'
-      publish_package: 'true'
       junit_results: 'false'
       junit_report: 'false'
       checkstyle_report: 'false'
       jacoco_coverage_report: 'false'
-    secrets:
-      gh_token: ${{ secrets.GITHUB_TOKEN }}
-      # aws_region: ${{ vars.AWS_REGION }} # although not required, it would be good to explicitly set this
-
-  sca-scan:
-    needs:
-      - assemble
-    uses: ./.github/workflows/sca-analysis.yml
-    permissions:
-      contents: read
-      security-events: write
-    with:
       java_version: *JAVA_VERSION
       java_distribution: *JDK_DISTRIBUTION
+      release_type: ${{ inputs.release_type != 'auto' && inputs.release_type || '' }}
     secrets:
-      snyk_client_id: ${{ secrets.SNYK_CLIENT_ID }}
-      snyk_client_secret: ${{ secrets.SNYK_CLIENT_SECRET }}
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
+      aws_region: ${{ vars.AWS_REGION }}
 
   ecr-publish-image:
-    needs: [ assemble ]
+    needs: [ release ]
     uses: ministryofjustice/laa-ccms-common-workflows/.github/workflows/ecr-publish-image.yml@4daa796eff475c7a107e17daf4e4882b8a1b949b # v2.3.0
     permissions:
       contents: read
@@ -63,7 +49,7 @@ jobs:
       java_version: *JAVA_VERSION
       java_distribution: *JDK_DISTRIBUTION
       jar_subproject: 'laa-data-claims-certificated-service'
-      image_version: ${{ format('data-claims-certificated-api-{0}', needs.assemble.outputs.published_artifact_version) }}
+      image_version: ${{ format('data-claims-certificated-api-{0}', needs.release.outputs.published_artifact_version) }}
       # Docker image scan is handled by sca-analysis.yml using short-lived SNYK_CLIENT_ID/SECRET
       # tokens — disabling here to avoid duplicate scans and the need for a static SNYK_TOKEN.
       image_scan: 'false'
@@ -72,7 +58,7 @@ jobs:
       ecr_repository: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REPOSITORY }}
       ecr_region: ${{ vars.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_REGION }}
       ecr_role_to_assume: ${{ secrets.LAA_DATA_CLAIMS_CERTIFICATED_API_ECR_ROLE_TO_ASSUME }}
-      snyk_token: "" # SNYK_TOKEN, set if available, otherwise set by auth step
+      snyk_token: ""
 
   # Obtain the ECR registry host for the Helm deploy. The shared ecr-publish-image
   # workflow logs into ECR but does not output the registry, and a reusable-workflow
@@ -80,7 +66,7 @@ jobs:
   # a job output — masking blanks it). So we log in here and expose the non-secret
   # registry value as a job output.
   get-ecr-registry:
-    needs: [ assemble ]
+    needs: [ release ]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -112,7 +98,6 @@ jobs:
   deploy-uat:
     needs:
       - ecr-publish-image
-      - sca-scan
       - get-ecr-registry
       - get-laa-ips
     permissions:
@@ -135,10 +120,9 @@ jobs:
 
   deploy-staging:
     needs:
-      - ecr-publish-image # Redundant? As deploy-uat already does this
-      - sca-scan # Redundant? As deploy-uat already does this
-      - get-ecr-registry # Redundant? As deploy-uat already does this
-      - get-laa-ips # Redundant? As deploy-uat already does this
+      - ecr-publish-image
+      - get-ecr-registry
+      - get-laa-ips
       - deploy-uat
     permissions:
       id-token: write
@@ -160,9 +144,8 @@ jobs:
 
   deploy-production:
     needs:
-      - ecr-publish-image # Redundant? As deploy-staging already does this
-      - sca-scan # Redundant? As deploy-staging already does this
-      - get-ecr-registry # Redundant? As deploy-staging already does this
+      - ecr-publish-image
+      - get-ecr-registry
       - deploy-staging
     permissions:
       id-token: write
