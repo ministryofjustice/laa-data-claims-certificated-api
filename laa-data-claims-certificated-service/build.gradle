@@ -89,7 +89,9 @@ dependencies {
 
     // temporary dependency overrides see README
     implementation 'com.fasterxml.jackson.core:jackson-core:2.22.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.0'
     implementation 'tools.jackson.core:jackson-core:3.2.0'
+    implementation 'tools.jackson.core:jackson-databind:3.1.5'
 
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly 'org.postgresql:postgresql'
