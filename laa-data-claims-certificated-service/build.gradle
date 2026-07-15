@@ -87,7 +87,7 @@ dependencies {
     implementation 'org.mapstruct:mapstruct:1.6.3'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
-    // temporary dependency overrides
+    // Temporary dependency overrides for Snyk; tools.jackson-databind pinned to 3.1.5 due to runtime/pipeline issues with 3.2.0
     implementation 'com.fasterxml.jackson.core:jackson-core:2.22.1'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.1'
     implementation 'tools.jackson.core:jackson-core:3.2.0'
