@@ -65,6 +65,16 @@ ext['tomcat.version'] = '11.0.23'
 // Overrides the Spring Boot managed postgresql.version.
 ext['postgresql.version'] = '42.7.12'
 
+dependencyManagement {
+    dependencies {
+        dependencySet(group: 'tools.jackson.core', version: '3.1.5') {
+            entry 'jackson-core'
+            entry 'jackson-databind'
+            entry 'jackson-annotations'
+        }
+    }
+}
+
 dependencies {
     implementation project(':laa-data-claims-certificated-api')
 
@@ -88,10 +98,8 @@ dependencies {
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
     // Temporary dependency overrides for Snyk
-    // tools.jackson.core:jackson-databind pinned to 3.1.5 due to runtime/pipeline issues with 3.2.0
     implementation 'com.fasterxml.jackson.core:jackson-core:2.22.1'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.1'
-    // Note: we use Jackson 2.x (com.fasterxml.jackson.core) - avoid mixing Jackson 3.x to prevent classpath conflicts
 
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly 'org.postgresql:postgresql'
