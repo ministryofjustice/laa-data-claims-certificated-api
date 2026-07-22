@@ -91,8 +91,7 @@ dependencies {
     // tools.jackson.core:jackson-databind pinned to 3.1.5 due to runtime/pipeline issues with 3.2.0
     implementation 'com.fasterxml.jackson.core:jackson-core:2.22.1'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.1'
-    implementation 'tools.jackson.core:jackson-core:3.2.1'
-    implementation 'tools.jackson.core:jackson-databind:3.2.1'
+    // Note: we use Jackson 2.x (com.fasterxml.jackson.core) - avoid mixing Jackson 3.x to prevent classpath conflicts
 
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly 'org.postgresql:postgresql'
