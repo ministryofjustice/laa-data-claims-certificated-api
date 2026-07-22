@@ -1,7 +1,7 @@
 plugins {
     id 'io.freefair.lombok' version '9.5.0'
     id 'uk.gov.laa.springboot.laa-spring-boot-gradle-plugin'
-    id 'io.sentry.jvm.gradle' version '6.13.0'
+    id 'io.sentry.jvm.gradle' version '6.14.0'
     id 'com.diffplug.spotless' version '8.8.0'
 }
 
@@ -91,8 +91,8 @@ dependencies {
     // tools.jackson.core:jackson-databind pinned to 3.1.5 due to runtime/pipeline issues with 3.2.0
     implementation 'com.fasterxml.jackson.core:jackson-core:2.22.1'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.1'
-    implementation 'tools.jackson.core:jackson-core:3.2.0'
-    implementation 'tools.jackson.core:jackson-databind:3.1.5'
+    implementation 'tools.jackson.core:jackson-core:3.2.1'
+    implementation 'tools.jackson.core:jackson-databind:3.2.1'
 
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly 'org.postgresql:postgresql'
