@@ -1,7 +1,7 @@
 plugins {
     id 'io.freefair.lombok' version '9.5.0'
     id 'uk.gov.laa.springboot.laa-spring-boot-gradle-plugin'
-    id 'io.sentry.jvm.gradle' version '6.13.0'
+    id 'io.sentry.jvm.gradle' version '6.14.0'
     id 'com.diffplug.spotless' version '8.8.0'
 }
 
@@ -65,6 +65,16 @@ ext['tomcat.version'] = '11.0.23'
 // Overrides the Spring Boot managed postgresql.version.
 ext['postgresql.version'] = '42.7.12'
 
+dependencyManagement {
+    dependencies {
+        dependencySet(group: 'tools.jackson.core', version: '3.1.5') {
+            entry 'jackson-core'
+            entry 'jackson-databind'
+            entry 'jackson-annotations'
+        }
+    }
+}
+
 dependencies {
     implementation project(':laa-data-claims-certificated-api')
 
@@ -88,11 +98,8 @@ dependencies {
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
     // Temporary dependency overrides for Snyk
-    // tools.jackson.core:jackson-databind pinned to 3.1.5 due to runtime/pipeline issues with 3.2.0
     implementation 'com.fasterxml.jackson.core:jackson-core:2.22.1'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.1'
-    implementation 'tools.jackson.core:jackson-core:3.2.0'
-    implementation 'tools.jackson.core:jackson-databind:3.1.5'
 
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly 'org.postgresql:postgresql'
