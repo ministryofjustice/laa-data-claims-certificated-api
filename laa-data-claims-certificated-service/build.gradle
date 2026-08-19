@@ -1,7 +1,7 @@
 plugins {
     id 'io.freefair.lombok' version '9.5.0'
     id 'uk.gov.laa.springboot.laa-spring-boot-gradle-plugin'
-    id 'io.sentry.jvm.gradle' version '6.17.0'
+    id 'io.sentry.jvm.gradle' version '6.18.0'
     id 'com.diffplug.spotless' version '8.9.0'
 }
 
@@ -114,7 +114,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     testImplementation 'org.testcontainers:testcontainers-postgresql'
-    testImplementation 'au.com.dius.pact.provider:spring7:4.7.3'
+    testImplementation 'au.com.dius.pact.provider:spring7:4.7.5'
 
     testRuntimeOnly 'org.flywaydb:flyway-database-postgresql'
 
@@ -138,7 +138,7 @@ dependencies {
 
     dependencies {
         // Pact Spring 6/7 provider support
-        pactTestImplementation 'au.com.dius.pact.provider:spring7:4.7.3'
+        pactTestImplementation 'au.com.dius.pact.provider:spring7:4.7.5'
         pactTestImplementation 'org.apache.httpcomponents:httpclient:4.5.14'
     }
 
