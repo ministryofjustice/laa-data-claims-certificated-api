@@ -158,6 +158,7 @@ paths:
       summary: Create a draft claim
       operationId: createDraft
       requestBody:
+        required: true
         description: create a draft claim
         content:
           application/json:
@@ -216,10 +217,12 @@ components:
       items:
         $ref: "#/components/schemas/Item"
     DraftClaim:
+      type: object
       required:
         - id
         - sourceSystem
         - createdByUserId
+        - status
       properties:
         id:
           type: string
@@ -247,10 +250,12 @@ components:
           format: date-time
         status:
           type: string
+          default: draft
           enum:
             - draft
             - deleted
     DraftClaimCreateRequest:
+      type: object
       required:
         - sourceSystem
         - createdByUserId
