@@ -1,8 +1,8 @@
 plugins {
     id 'io.freefair.lombok' version '9.5.0'
     id 'uk.gov.laa.springboot.laa-spring-boot-gradle-plugin'
-    id 'io.sentry.jvm.gradle' version '6.18.0'
-    id 'com.diffplug.spotless' version '8.9.0'
+    id 'io.sentry.jvm.gradle' version '6.19.0'
+    id 'com.diffplug.spotless' version '8.10.0'
 }
 
 // Replaces application.yml @version@  with version from gradle.properties
@@ -98,8 +98,8 @@ dependencies {
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
     // Temporary dependency overrides for Snyk
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.22.1'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.1'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.22.2'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.2'
 
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly 'org.postgresql:postgresql'
