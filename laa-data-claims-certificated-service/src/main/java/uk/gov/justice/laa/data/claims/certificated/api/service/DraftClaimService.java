@@ -31,6 +31,8 @@ public class DraftClaimService {
 
     draftClaimEntity.setId(uuidGenerator.generate());
     draftClaimEntity.setStatus(DraftClaimEntity.DraftClaimStatus.DRAFT);
+    draftClaimEntity.setCreatedAt(java.time.OffsetDateTime.now());
+    draftClaimEntity.setUpdatedAt(java.time.OffsetDateTime.now());
 
     DraftClaimEntity savedEntity = repository.save(draftClaimEntity);
 
