@@ -81,4 +81,42 @@ class DraftClaimControllerIntegrationTest extends BaseIntegrationTest {
     assertThat(dbEntity.getCreatedAt()).isNotNull();
     assertThat(dbEntity.getUpdatedAt()).isNotNull();
   }
+
+  @Test
+  @DisplayName(
+      "POST /api/v1/drafts with missing required field (sourceSystem) returns 400 Bad Request")
+  void shouldReturnBadRequestForMissingRequiredFields() throws Exception {
+    String requestBody =
+        "{"
+            + "\"createdByUserId\": \"user-123\","
+            + "\"data\": {\"key1\": \"value1\", \"key2\": \"value2\"},"
+            + "\"metadata\": {\"meta1\": \"value1\"},"
+            + "\"draftTypeId\": \"12345678-1234-7234-1234-123456789013\","
+            + "\"certificateId\": \"cert-123\""
+            + "}";
+
+    mockMvc
+        .perform(
+            post("/api/v1/drafts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody)
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isBadRequest());
+
+    assertThat(draftClaimRepository.count()).isEqualTo(0);
+  }
+
+  @Test
+  @DisplayName("POST /api/v1/drafts with malformed JSON returns 400 Bad Request")
+  void shouldReturn400WhenJsonIsMalformed() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/drafts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ invalid json syntax }")
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isBadRequest());
+
+    assertThat(draftClaimRepository.count()).isEqualTo(0);
+  }
 }
