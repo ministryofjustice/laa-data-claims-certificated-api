@@ -15,78 +15,78 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.justice.laa.data.claims.certificated.api.entity.DraftClaimEntity;
-import uk.gov.justice.laa.data.claims.certificated.api.mapper.DraftClaimMapper;
-import uk.gov.justice.laa.data.claims.certificated.api.model.DraftClaim;
-import uk.gov.justice.laa.data.claims.certificated.api.model.DraftClaimCreateRequest;
-import uk.gov.justice.laa.data.claims.certificated.api.repository.DraftClaimRepository;
+import uk.gov.justice.laa.data.claims.certificated.api.entity.ClaimDraftEntity;
+import uk.gov.justice.laa.data.claims.certificated.api.mapper.ClaimDraftMapper;
+import uk.gov.justice.laa.data.claims.certificated.api.model.ClaimDraft;
+import uk.gov.justice.laa.data.claims.certificated.api.model.ClaimDraftCreateRequest;
+import uk.gov.justice.laa.data.claims.certificated.api.repository.ClaimDraftRepository;
 import uk.gov.justice.laa.data.claims.certificated.api.utils.Uuid7Generator;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("DraftClaimService")
-class DraftClaimServiceTest {
+@DisplayName("ClaimDraftService")
+class ClaimDraftServiceTest {
 
-  @Mock private DraftClaimRepository mockDraftClaimRepository;
-  @Mock private DraftClaimMapper mockDraftClaimMapper;
+  @Mock private ClaimDraftRepository mockClaimDraftRepository;
+  @Mock private ClaimDraftMapper mockClaimDraftMapper;
   @Mock private Uuid7Generator mockUuid7Generator;
 
-  @InjectMocks private DraftClaimService draftClaimService;
+  @InjectMocks private ClaimDraftService ClaimDraftService;
 
   @Nested
   @DisplayName("Create draft claim")
-  class CreateDraftClaim {
+  class CreateClaimDraft {
     @Test
     @DisplayName("returns the created draft claim")
-    void shouldCreateDraftClaim() {
-      DraftClaimCreateRequest draftRequestBody =
-          DraftClaimCreateRequest.builder()
+    void shouldCreateClaimDraft() {
+      ClaimDraftCreateRequest draftRequestBody =
+          ClaimDraftCreateRequest.builder()
               .sourceSystem("TestClient")
               .createdByUserId("user-123")
               .data(Map.of("key1", "value1", "key2", "value2"))
               .metadata(Map.of("meta1", "value1"))
-              .draftTypeId(UUID.fromString("12345678-1234-7234-1234-123456789013"))
+              .claimDraftTypeId(UUID.fromString("12345678-1234-7234-1234-123456789013"))
               .certificateId("cert-123")
               .build();
 
       UUID draftId = UUID.fromString("12345678-1234-7234-1234-123456789012");
-      DraftClaimEntity initialEntity =
-          DraftClaimEntity.builder()
+      ClaimDraftEntity initialEntity =
+          ClaimDraftEntity.builder()
               .sourceSystem(draftRequestBody.getSourceSystem())
               .createdByUserId(draftRequestBody.getCreatedByUserId())
               .data(draftRequestBody.getData())
               .metadata(draftRequestBody.getMetadata())
-              .draftTypeId(draftRequestBody.getDraftTypeId())
+              .claimDraftTypeId(draftRequestBody.getClaimDraftTypeId())
               .certificateId(draftRequestBody.getCertificateId())
               .build();
-      DraftClaim expectedDraftClaim =
-          DraftClaim.builder()
+      ClaimDraft expectedClaimDraft =
+          ClaimDraft.builder()
               .id(draftId)
               .sourceSystem(draftRequestBody.getSourceSystem())
               .createdByUserId(draftRequestBody.getCreatedByUserId())
               .data(draftRequestBody.getData())
               .metadata(draftRequestBody.getMetadata())
-              .draftTypeId(draftRequestBody.getDraftTypeId())
+              .claimDraftTypeId(draftRequestBody.getClaimDraftTypeId())
               .certificateId(draftRequestBody.getCertificateId())
-              .status(DraftClaim.StatusEnum.DRAFT)
+              .status(ClaimDraft.StatusEnum.DRAFT)
               .build();
       when(mockUuid7Generator.generate()).thenReturn(draftId);
-      when(mockDraftClaimMapper.toDraftClaimEntity(draftRequestBody)).thenReturn(initialEntity);
-      when(mockDraftClaimRepository.save(any(DraftClaimEntity.class)))
+      when(mockClaimDraftMapper.toClaimDraftEntity(draftRequestBody)).thenReturn(initialEntity);
+      when(mockClaimDraftRepository.save(any(ClaimDraftEntity.class)))
           .thenAnswer(i -> i.getArgument(0));
-      when(mockDraftClaimMapper.toDraftClaim(any(DraftClaimEntity.class)))
-          .thenReturn(expectedDraftClaim);
+      when(mockClaimDraftMapper.toClaimDraft(any(ClaimDraftEntity.class)))
+          .thenReturn(expectedClaimDraft);
 
-      DraftClaim actualDraftClaim = draftClaimService.createDraft(draftRequestBody);
+      ClaimDraft actualClaimDraft = ClaimDraftService.createClaimDraft(draftRequestBody);
 
-      ArgumentCaptor<DraftClaimEntity> entityCaptor =
-          ArgumentCaptor.forClass(DraftClaimEntity.class);
-      verify(mockDraftClaimRepository).save(entityCaptor.capture());
-      DraftClaimEntity savedEntity = entityCaptor.getValue();
+      ArgumentCaptor<ClaimDraftEntity> entityCaptor =
+          ArgumentCaptor.forClass(ClaimDraftEntity.class);
+      verify(mockClaimDraftRepository).save(entityCaptor.capture());
+      ClaimDraftEntity savedEntity = entityCaptor.getValue();
 
       assertThat(savedEntity.getId()).isEqualTo(draftId);
-      assertThat(savedEntity.getStatus()).isEqualTo(DraftClaimEntity.DraftClaimStatus.DRAFT);
+      assertThat(savedEntity.getStatus()).isEqualTo(ClaimDraftEntity.ClaimDraftStatus.DRAFT);
 
-      assertThat(actualDraftClaim).isEqualTo(expectedDraftClaim);
+      assertThat(actualClaimDraft).isEqualTo(expectedClaimDraft);
     }
   }
 }

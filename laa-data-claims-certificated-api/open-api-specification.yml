@@ -151,26 +151,26 @@ paths:
         '500':
           description: 'Internal server error'
 
-  /api/v1/drafts:
+  /api/v1/claim-drafts:
     post:
       tags:
-        - drafts
+        - claim-drafts
       summary: Create a draft claim
-      operationId: createDraft
+      operationId: createClaimDraft
       requestBody:
         required: true
-        description: create a draft claim
+        description: create a claim draft
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DraftClaimCreateRequest'
+              $ref: '#/components/schemas/ClaimDraftCreateRequest'
       responses:
         '201':
           description: 'Created'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DraftClaim"
+                $ref: "#/components/schemas/ClaimDraft"
         '400':
           description: 'Bad request'
           content:
@@ -216,7 +216,7 @@ components:
       type: array
       items:
         $ref: "#/components/schemas/Item"
-    DraftClaim:
+    ClaimDraft:
       type: object
       required:
         - id
@@ -237,7 +237,7 @@ components:
         metadata:
           type: object
           additionalProperties: true
-        draftTypeId:
+        claimDraftTypeId:
           type: string
           format: uuid
         certificateId:
@@ -254,7 +254,7 @@ components:
           enum:
             - draft
             - deleted
-    DraftClaimCreateRequest:
+    ClaimDraftCreateRequest:
       type: object
       required:
         - sourceSystem
@@ -270,7 +270,7 @@ components:
         metadata:
           type: object
           additionalProperties: true
-        draftTypeId:
+        claimDraftTypeId:
           type: string
           format: uuid
         certificateId:

@@ -22,28 +22,28 @@ import org.hibernate.type.SqlTypes;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "draft_claims")
-public class DraftClaimEntity {
+@Table(name = "claim_drafts")
+public class ClaimDraftEntity {
   @Id
   @Column(nullable = false)
   private UUID id;
 
-  @Column(name = "draft_type_id")
-  private UUID draftTypeId;
+  @Column(name = "claim_draft_type_id")
+  private UUID claimDraftTypeId;
 
   @Column(name = "certificate_id")
   private String certificateId;
 
   /** Enumeration representing the status of a draft claim. */
-  public enum DraftClaimStatus {
+  public enum ClaimDraftStatus {
     DRAFT,
     DELETED
   }
 
   @Enumerated(EnumType.STRING)
   @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-  @Column(name = "status", nullable = false, columnDefinition = "draft_claim_status")
-  private DraftClaimStatus status;
+  @Column(name = "status", nullable = false, columnDefinition = "claim_draft_status")
+  private ClaimDraftStatus status;
 
   @Column(name = "source_system", nullable = false)
   private String sourceSystem;
