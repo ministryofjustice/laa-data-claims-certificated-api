@@ -29,7 +29,7 @@ class ClaimDraftControllerIntegrationTest extends BaseIntegrationTest {
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Test
-  @DisplayName("POST /api/v1/claim-drafts creates a new draft claim")
+  @DisplayName("POST /api/v1/claim-drafts creates a new claim draft")
   void shouldCreateClaimDraft() throws Exception {
     String requestBody =
         "{"
@@ -37,7 +37,7 @@ class ClaimDraftControllerIntegrationTest extends BaseIntegrationTest {
             + "\"createdByUserId\": \"user-123\","
             + "\"data\": {\"key1\": \"value1\", \"key2\": \"value2\"},"
             + "\"metadata\": {\"meta1\": \"value1\"},"
-            + "\"claimDraftTypeId\": \"12345678-1234-7234-1234-123456789013\","
+            + "\"claimTypeId\": \"12345678-1234-7234-1234-123456789013\","
             + "\"certificateId\": \"cert-123\""
             + "}";
 
@@ -59,7 +59,7 @@ class ClaimDraftControllerIntegrationTest extends BaseIntegrationTest {
             .andExpect(jsonPath("$.data.key1").value("value1"))
             .andExpect(jsonPath("$.data.key2").value("value2"))
             .andExpect(jsonPath("$.metadata.meta1").value("value1"))
-            .andExpect(jsonPath("$.claimDraftTypeId").value("12345678-1234-7234-1234-123456789013"))
+            .andExpect(jsonPath("$.claimTypeId").value("12345678-1234-7234-1234-123456789013"))
             .andExpect(jsonPath("$.certificateId").value("cert-123"))
             .andExpect(jsonPath("$.status").value("draft"))
             .andReturn();
@@ -73,7 +73,7 @@ class ClaimDraftControllerIntegrationTest extends BaseIntegrationTest {
     assertThat(dbEntity.getSourceSystem()).isEqualTo("TestClient");
     assertThat(dbEntity.getCreatedByUserId()).isEqualTo("user-123");
     assertThat(dbEntity.getCertificateId()).isEqualTo("cert-123");
-    assertThat(dbEntity.getClaimDraftTypeId())
+    assertThat(dbEntity.getClaimTypeId())
         .isEqualTo(UUID.fromString("12345678-1234-7234-1234-123456789013"));
     assertThat(dbEntity.getStatus()).isEqualTo(ClaimDraftEntity.ClaimDraftStatus.DRAFT);
 
@@ -93,7 +93,7 @@ class ClaimDraftControllerIntegrationTest extends BaseIntegrationTest {
             + "\"createdByUserId\": \"user-123\","
             + "\"data\": {\"key1\": \"value1\", \"key2\": \"value2\"},"
             + "\"metadata\": {\"meta1\": \"value1\"},"
-            + "\"claimDraftTypeId\": \"12345678-1234-7234-1234-123456789013\","
+            + "\"claimTypeId\": \"12345678-1234-7234-1234-123456789013\","
             + "\"certificateId\": \"cert-123\""
             + "}";
 

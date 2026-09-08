@@ -10,7 +10,7 @@ import uk.gov.justice.laa.data.claims.certificated.api.model.ClaimDraftCreateReq
 import uk.gov.justice.laa.data.claims.certificated.api.repository.ClaimDraftRepository;
 import uk.gov.justice.laa.data.claims.certificated.api.utils.Uuid7Generator;
 
-/** Service class for handling draft claim requests. */
+/** Service class for handling claim draft requests. */
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -20,13 +20,13 @@ public class ClaimDraftService {
   private final Uuid7Generator uuidGenerator;
 
   /**
-   * Creates a draft claim.
+   * Creates a claim draft.
    *
-   * @param claimDraftRequestBody the draft claim to be created
-   * @return the draft claim
+   * @param claimDraftRequestBody the claim draft to be created
+   * @return the created claim draft
    */
   public ClaimDraft createClaimDraft(ClaimDraftCreateRequest claimDraftRequestBody) {
-    log.info("Creating draft claim");
+    log.info("Creating claim draft");
     ClaimDraftEntity claimDraftEntity = mapper.toClaimDraftEntity(claimDraftRequestBody);
 
     claimDraftEntity.setId(uuidGenerator.generate());

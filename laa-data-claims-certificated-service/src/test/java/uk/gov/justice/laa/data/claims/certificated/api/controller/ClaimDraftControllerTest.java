@@ -42,7 +42,7 @@ class ClaimDraftControllerTest {
               .createdByUserId("user-123")
               .data(Map.of("key1", "value1", "key2", "value2"))
               .metadata(Map.of("meta1", "value1"))
-              .claimDraftTypeId(draftTypeId)
+              .claimTypeId(draftTypeId)
               .certificateId("cert-123")
               .build();
       when(mockClaimDraftService.createClaimDraft(draftRequestBody))
@@ -53,7 +53,7 @@ class ClaimDraftControllerTest {
                   .createdByUserId(draftRequestBody.getCreatedByUserId())
                   .data(draftRequestBody.getData())
                   .metadata(draftRequestBody.getMetadata())
-                  .claimDraftTypeId(draftRequestBody.getClaimDraftTypeId())
+                  .claimTypeId(draftRequestBody.getClaimTypeId())
                   .certificateId(draftRequestBody.getCertificateId())
                   .status(ClaimDraft.StatusEnum.DRAFT)
                   .build());
@@ -63,7 +63,7 @@ class ClaimDraftControllerTest {
               post("/api/v1/claim-drafts")
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(
-                      "{\"sourceSystem\": \"TestClient\", \"createdByUserId\": \"user-123\", \"data\": {\"key1\": \"value1\", \"key2\": \"value2\"}, \"metadata\": {\"meta1\": \"value1\"}, \"claimDraftTypeId\": \"12345678-1234-7234-1234-123456789013\", \"certificateId\": \"cert-123\"}")
+                      "{\"sourceSystem\": \"TestClient\", \"createdByUserId\": \"user-123\", \"data\": {\"key1\": \"value1\", \"key2\": \"value2\"}, \"metadata\": {\"meta1\": \"value1\"}, \"claimTypeId\": \"12345678-1234-7234-1234-123456789013\", \"certificateId\": \"cert-123\"}")
                   .accept(MediaType.APPLICATION_JSON))
           .andExpect(status().isCreated())
           .andExpect(jsonPath("$.id").value(draftId.toString()))
@@ -72,7 +72,7 @@ class ClaimDraftControllerTest {
           .andExpect(jsonPath("$.data.key1").value("value1"))
           .andExpect(jsonPath("$.data.key2").value("value2"))
           .andExpect(jsonPath("$.metadata.meta1").value("value1"))
-          .andExpect(jsonPath("$.claimDraftTypeId").value(draftTypeId.toString()))
+          .andExpect(jsonPath("$.claimTypeId").value(draftTypeId.toString()))
           .andExpect(jsonPath("$.certificateId").value("cert-123"))
           .andExpect(jsonPath("$.status").value("draft"));
 

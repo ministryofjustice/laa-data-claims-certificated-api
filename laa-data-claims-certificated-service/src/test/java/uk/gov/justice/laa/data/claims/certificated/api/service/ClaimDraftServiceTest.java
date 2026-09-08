@@ -33,10 +33,10 @@ class ClaimDraftServiceTest {
   @InjectMocks private ClaimDraftService ClaimDraftService;
 
   @Nested
-  @DisplayName("Create draft claim")
+  @DisplayName("Create claim draft")
   class CreateClaimDraft {
     @Test
-    @DisplayName("returns the created draft claim")
+    @DisplayName("returns the created claim draft")
     void shouldCreateClaimDraft() {
       ClaimDraftCreateRequest draftRequestBody =
           ClaimDraftCreateRequest.builder()
@@ -44,7 +44,7 @@ class ClaimDraftServiceTest {
               .createdByUserId("user-123")
               .data(Map.of("key1", "value1", "key2", "value2"))
               .metadata(Map.of("meta1", "value1"))
-              .claimDraftTypeId(UUID.fromString("12345678-1234-7234-1234-123456789013"))
+              .claimTypeId(UUID.fromString("12345678-1234-7234-1234-123456789013"))
               .certificateId("cert-123")
               .build();
 
@@ -55,7 +55,7 @@ class ClaimDraftServiceTest {
               .createdByUserId(draftRequestBody.getCreatedByUserId())
               .data(draftRequestBody.getData())
               .metadata(draftRequestBody.getMetadata())
-              .claimDraftTypeId(draftRequestBody.getClaimDraftTypeId())
+              .claimTypeId(draftRequestBody.getClaimTypeId())
               .certificateId(draftRequestBody.getCertificateId())
               .build();
       ClaimDraft expectedClaimDraft =
@@ -65,7 +65,7 @@ class ClaimDraftServiceTest {
               .createdByUserId(draftRequestBody.getCreatedByUserId())
               .data(draftRequestBody.getData())
               .metadata(draftRequestBody.getMetadata())
-              .claimDraftTypeId(draftRequestBody.getClaimDraftTypeId())
+              .claimTypeId(draftRequestBody.getClaimTypeId())
               .certificateId(draftRequestBody.getCertificateId())
               .status(ClaimDraft.StatusEnum.DRAFT)
               .build();

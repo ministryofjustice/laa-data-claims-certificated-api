@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-/** Entity representing a draft claim in the system. */
+/** Entity representing a claim draft in the system. */
 @Data
 @Builder
 @NoArgsConstructor
@@ -28,13 +28,13 @@ public class ClaimDraftEntity {
   @Column(nullable = false)
   private UUID id;
 
-  @Column(name = "claim_draft_type_id")
-  private UUID claimDraftTypeId;
+  @Column(name = "claim_type_id")
+  private UUID claimTypeId;
 
   @Column(name = "certificate_id")
   private String certificateId;
 
-  /** Enumeration representing the status of a draft claim. */
+  /** Enumeration representing the status of a claim draft. */
   public enum ClaimDraftStatus {
     DRAFT,
     DELETED

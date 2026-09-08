@@ -12,7 +12,7 @@ import uk.gov.justice.laa.data.claims.certificated.api.model.ClaimDraft;
 import uk.gov.justice.laa.data.claims.certificated.api.model.ClaimDraftCreateRequest;
 import uk.gov.justice.laa.data.claims.certificated.api.service.ClaimDraftService;
 
-/** Controller for handling draft claim requests. */
+/** Controller for handling claim draft requests. */
 @RestController
 @RequiredArgsConstructor
 @Slf4j
@@ -23,7 +23,7 @@ public class ClaimDraftController extends BaseApiController implements ClaimDraf
   @Override
   public ResponseEntity<ClaimDraft> createClaimDraft(
       @Valid @RequestBody ClaimDraftCreateRequest claimDraftCreateRequest) {
-    log.info("Creating draft claim");
+    log.info("Creating claim draft");
 
     ClaimDraft claimDraft = claimDraftService.createClaimDraft(claimDraftCreateRequest);
     var location =

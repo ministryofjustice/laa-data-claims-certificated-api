@@ -155,7 +155,7 @@ paths:
     post:
       tags:
         - claim-drafts
-      summary: Create a draft claim
+      summary: Create a claim draft
       operationId: createClaimDraft
       requestBody:
         required: true
@@ -237,7 +237,7 @@ components:
         metadata:
           type: object
           additionalProperties: true
-        claimDraftTypeId:
+        claimTypeId:
           type: string
           format: uuid
         certificateId:
@@ -270,7 +270,7 @@ components:
         metadata:
           type: object
           additionalProperties: true
-        claimDraftTypeId:
+        claimTypeId:
           type: string
           format: uuid
         certificateId:
