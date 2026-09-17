@@ -41,7 +41,7 @@ spotless {
         importOrder()
         removeUnusedImports()
         cleanthat()
-        googleJavaFormat('1.27.0')
+        googleJavaFormat('1.30.0')
     }
 }
 
