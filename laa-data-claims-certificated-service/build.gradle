@@ -1,8 +1,8 @@
 plugins {
     id 'io.freefair.lombok' version '9.5.0'
     id 'uk.gov.justice.service.laa.laa-spring-boot-gradle-plugin'
-    id 'io.sentry.jvm.gradle' version '6.18.0'
-    id 'com.diffplug.spotless' version '8.9.0'
+    id 'io.sentry.jvm.gradle' version '6.21.0'
+    id 'com.diffplug.spotless' version '8.10.2'
 }
 
 // Replaces application.yml @version@  with version from gradle.properties
@@ -41,7 +41,7 @@ spotless {
         importOrder()
         removeUnusedImports()
         cleanthat()
-        googleJavaFormat('1.27.0')
+        googleJavaFormat('1.30.0')
     }
 }
 
@@ -67,7 +67,8 @@ ext['postgresql.version'] = '42.7.12'
 
 dependencyManagement {
     dependencies {
-        dependencySet(group: 'tools.jackson.core', version: '3.1.5') {
+        // Bumped from 3.1.5 to 3.1.6 to address Snyk vulnerability SNYK-JAVA-TOOLSJACKSONCORE-19778371
+        dependencySet(group: 'tools.jackson.core', version: '3.1.6') {
             entry 'jackson-core'
             entry 'jackson-databind'
             entry 'jackson-annotations'
@@ -83,7 +84,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1'
 
     // Required for tracing information
     implementation 'org.springframework.boot:spring-boot-micrometer-tracing-brave'
@@ -98,8 +99,8 @@ dependencies {
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
     // Temporary dependency overrides for Snyk
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.22.1'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.1'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.22.2'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.2'
 
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     runtimeOnly 'org.postgresql:postgresql'
