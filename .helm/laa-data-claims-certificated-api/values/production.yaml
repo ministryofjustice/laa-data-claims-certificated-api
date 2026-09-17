@@ -64,3 +64,14 @@ ingress:
       external-dns.alpha.kubernetes.io/set-identifier: "data-claims-certificated-api-production-green-laa-data-claims-certificated-api-prod-green"
 servicemonitor:
   enabled: false
+
+metrics:
+  mainReleaseName: production
+
+grafana:
+  enabled: true
+
+sentry:
+  enabled: true
+  environment: production
+  tracesSampleRate: 0.25
