@@ -39,7 +39,7 @@ on:
 jobs:
   vulnerability-scan-app:
     name: Snyk - Scan app source code
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     permissions:
       contents: read
@@ -70,7 +70,7 @@ jobs:
 
   vulnerability-scan-docker:
     name: Snyk - Scan Docker image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     permissions:
       contents: read
@@ -115,7 +115,7 @@ jobs:
   vulnerability-report:
     name: Snyk - Monitor and upload SARIF report
     if: ${{ inputs.run_monitor == true }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     permissions:
       contents: read

@@ -67,7 +67,7 @@ jobs:
   # registry value as a job output.
   get-ecr-registry:
     needs: [ release ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       id-token: write
       contents: read
@@ -85,7 +85,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
 
   get-laa-ips:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       laa_ips: ${{ steps.fetch.outputs.laa_ips }}
     steps:

@@ -17,7 +17,7 @@ env:
 
 jobs:
   compute-snapshot-version:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       snapshot_version: ${{ steps.version.outputs.snapshot_version }}
     steps:
@@ -104,7 +104,7 @@ jobs:
 
 
   create-preview-db:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs:
       - ecr-publish-image
       - sca-scan
@@ -151,7 +151,7 @@ jobs:
   # registry value as a job output.
   get-ecr-registry:
     needs: [ build ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       id-token: write
       contents: read
@@ -169,7 +169,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
 
   get-laa-ips:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       laa_ips: ${{ steps.fetch.outputs.laa_ips }}
     steps:
@@ -235,7 +235,7 @@ jobs:
     needs:
       - create-preview-db
       - deploy-uat-preview
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       pull-requests: write
     steps:
